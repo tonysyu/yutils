@@ -1,3 +1,5 @@
+import numpy as np
+
 import multiloop
 
 
@@ -89,6 +91,35 @@ def slice_from_string(s):
     if len(slice_args) == 1:
         slice_args.append(slice_args[0]+1)
     return slice(*slice_args)
+
+
+def arg_nearest(arr, value, rtol=None):
+    """Return index of array with value nearest the specified value.
+    
+    Parameters
+    ----------
+    arr : numpy array
+    value : float
+        value to search for in `arr`
+    rtol : float
+        If specified, assert that value in `arr` atleast as close to `value` as
+        `rtol`.
+    
+    Example
+    -------
+    >>> a = np.array([1, 2, 3, 4, 5])
+    >>> arg_nearest(a, 3.1)
+    2
+    >>> arg_nearest(a, 3.1, rtol=1e-4)
+    Traceback (most recent call last):
+        ...
+    AssertionError
+    """
+    abs_diff = np.abs(arr - value)
+    idx = abs_diff.argmin()
+    if rtol is not None:
+        assert abs_diff[idx] / value < rtol
+    return idx
 
 
 def test_attr_values():
