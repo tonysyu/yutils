@@ -10,7 +10,6 @@ def profile(*args, **kwargs):
 def join_to_filepath(*args, **kwargs):
     raise DeprecationWarning('Moved to yutils.path')
 
-
 def add_to_python_path(*args, **kwargs):
     raise DeprecationWarning('Moved to yutils.path')
 
@@ -102,7 +101,7 @@ def slice_from_string(s):
     return slice(*slice_args)
 
 
-def arg_nearest(arr, value, rtol=None):
+def arg_nearest(arr, value, atol=None, rtol=None):
     """Return index of array with value nearest the specified value.
     
     Parameters
@@ -110,24 +109,28 @@ def arg_nearest(arr, value, rtol=None):
     arr : numpy array
     value : float
         value to search for in `arr`
-    rtol : float
+    atol, rtol : float
         If specified, assert that value in `arr` atleast as close to `value` as
-        `rtol`.
+        given tolerance. `atol` and `rtol`
     
     Example
     -------
     >>> a = np.array([1, 2, 3, 4, 5])
     >>> arg_nearest(a, 3.1)
     2
-    >>> arg_nearest(a, 3.1, rtol=1e-4)
+    >>> arg_nearest(a, 3.1, atol=0.1)
     Traceback (most recent call last):
         ...
     AssertionError
+    >>> arg_nearest(a, 3.1, rtol=0.1)
+    2
     """
     abs_diff = np.abs(arr - value)
     idx = abs_diff.argmin()
+    if atol is not None:
+        assert abs_diff[idx] < atol
     if rtol is not None:
-        assert abs_diff[idx] / value < rtol
+        assert np.abs(abs_diff[idx] / value) < rtol
     return idx
 
 
