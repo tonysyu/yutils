@@ -34,6 +34,15 @@ def attr_values(cls, attrs, sep=' = ', pre='\t', post='\n'):
     post : str
         postfix to attribute name, value pairs. Note, this string is used to
         join the pairs and thus, will not be added as a postfix to last pair.
+    
+    Example
+    -------
+    >>> class Dummy:
+    ...     a = 1
+    ...     b = 2
+    >>> print attr_values(Dummy, ('a', 'b'), pre='')
+    a = 1
+    b = 2
     """
     values = (pre + attr + sep + repr(getattr(cls, attr)) for attr in attrs)
     return post.join(values)
@@ -42,8 +51,8 @@ def attr_values(cls, attrs, sep=' = ', pre='\t', post='\n'):
 def permutation_iter(adict):
     """Generator function which returns permutations of dict values
     
-    Example:
-    --------
+    Example
+    -------
     >>> adict = dict(a=(1, 2), b=(3, 4))
     >>> for d in permutation_iter(adict):
     ...     print d
@@ -122,15 +131,7 @@ def arg_nearest(arr, value, rtol=None):
     return idx
 
 
-def test_attr_values():
-    class Dummy:
-        a = 1
-        b = 2
-    assert attr_values(Dummy, ('a', 'b'), pre='') == 'a = 1\nb = 2'
-
 if __name__ == '__main__':
     import doctest
-    import nose
     
     doctest.testmod()
-    nose.runmodule()
