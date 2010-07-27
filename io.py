@@ -1,6 +1,8 @@
 """
 Data input/output helper functions.
 """
+from __future__ import with_statement
+
 
 def read_debug_data(datafile, varnames, postfix=' = ', init=None, noisy=False):
     """Return dict with specified variables read from a datafile.
