@@ -121,16 +121,20 @@ def arg_nearest(arr, value, atol=None, rtol=None):
     >>> arg_nearest(a, 3.1, atol=0.1)
     Traceback (most recent call last):
         ...
-    AssertionError
+    ValueError: desired: 3.1, closest: 3
     >>> arg_nearest(a, 3.1, rtol=0.1)
     2
     """
     abs_diff = np.abs(arr - value)
     idx = abs_diff.argmin()
     if atol is not None:
-        assert abs_diff[idx] < atol
+        if abs_diff[idx] > atol:
+            print 'difference:', abs_diff[idx]
+            raise ValueError('desired: %s, closest: %s' % (value, arr[idx]))
     if rtol is not None:
-        assert np.abs(abs_diff[idx] / value) < rtol
+        if np.abs(abs_diff[idx] / value) > rtol:
+            print 'difference:', np.abs(abs_diff[idx] / value)
+            raise ValueError('desired: %s, closest: %s' % (value, arr[idx]))
     return idx
 
 
