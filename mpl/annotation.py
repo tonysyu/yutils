@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from yutils.scaling import loglog
 
 
-def slope_marker(origin, slope, size_frac=0.1, pad_frac=0.1, ax=None,
+def slope_marker(origin, slope, size_frac=0.1, pad_frac=0.15, ax=None,
                  orientation='normal'):
     """Plot triangular slope marker labeled with slope.
     
@@ -33,6 +33,7 @@ def slope_marker(origin, slope, size_frac=0.1, pad_frac=0.1, ax=None,
     else:
         rise = run = None
     
+    x0, y0 = origin
     xlim = ax.get_xlim()
     dx_linear = size_frac * (xlim[1] - xlim[0])
     dx_decades = size_frac * (np.log10(xlim[1]) - np.log10(xlim[0]))
@@ -44,26 +45,29 @@ def slope_marker(origin, slope, size_frac=0.1, pad_frac=0.1, ax=None,
 
     if ax.get_xscale() == 'log':
         log_size = dx_decades
-        dx = loglog.displace(origin[0], log_size) - origin[0]
-        x_text = loglog.displace(origin[0], log_size/2.)
+        dx = loglog.displace(x0, log_size) - x0
+        x_text = loglog.displace(x0, log_size/2.)
     else:
         dx = dx_linear
-        x_text = origin[0] + dx/2.
+        x_text = x0 + dx/2.
     
     if ax.get_yscale() == 'log':
         log_size = dx_decades * slope
-        dy = loglog.displace(origin[1], log_size) - origin[1]
-        y_text = loglog.displace(origin[1], log_size/2.)
+        dy = loglog.displace(y0, log_size) - y0
+        y_text = loglog.displace(y0, log_size/2.)
     else:
         dy = dx_linear * slope
-        y_text = origin[1] + dy/2.
+        y_text = y0 + dy/2.
         
     x_pad = pad_frac * dx
     y_pad = pad_frac * dy
     va = 'top' if y_pad > 0 else 'bottom'
-    ax.text(x_text, origin[1]-y_pad, str(run), va=va, ha='center')
     ha = 'left' if x_pad > 0 else 'right'
-    ax.text(origin[0]+dx+x_pad, y_text, str(rise), ha=ha, va='center')
+    if rise is not None:
+        ax.text(x_text, y0-y_pad, str(run), va=va, ha='center')
+        ax.text(x0+dx+x_pad, y_text, str(rise), ha=ha, va='center')
+    else:
+        ax.text(x0+dx+x_pad, y_text, str(slope), ha=ha, va='center')
     
     ax.add_patch(_slope_triangle(origin, dx, dy))
 
@@ -96,5 +100,8 @@ if __name__ == '__main__':
     
     ax3.loglog(x, x**0.5)
     slope_marker((10, 4), (1, 2), orientation='inverted', ax=ax3)
+    
+    ax4.loglog(x, x**0.5)
+    slope_marker((10, 2), 0.5, ax=ax4)
     
     plt.show()
