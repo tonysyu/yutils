@@ -4,8 +4,8 @@ import matplotlib.pyplot as plt
 from yutils.scaling import loglog
 
 
-def slope_marker(origin, slope, size_frac=0.1, pad_frac=0.15, ax=None,
-                 orientation='normal'):
+def slope_marker(origin, slope, size_frac=0.1, pad_frac=0.1, ax=None,
+                 invert=False):
     """Plot triangular slope marker labeled with slope.
     
     Parameters
@@ -20,9 +20,9 @@ def slope_marker(origin, slope, size_frac=0.1, pad_frac=0.15, ax=None,
     pad_frac : float
         the fraction of the slope marker used to pad text labels. Should be less 
         than 1.
-    orientation : {normal|inverted}
+    invert : bool
         Normally, the slope marker is below a line for positive slopes and above
-        a line for negative slopes; `orientation='inverted'` flips the marker.
+        a line for negative slopes; `invert` flips the marker.
     """
     if ax is None:
         ax = plt.gca()
@@ -39,25 +39,25 @@ def slope_marker(origin, slope, size_frac=0.1, pad_frac=0.15, ax=None,
     dx_decades = size_frac * (np.log10(xlim[1]) - np.log10(xlim[0]))
     
     
-    if orientation == 'inverted':
+    if invert:
         dx_linear = -dx_linear
         dx_decades = -dx_decades
 
     if ax.get_xscale() == 'log':
         log_size = dx_decades
-        dx = loglog.displace(x0, log_size) - x0
-        x_text = loglog.displace(x0, log_size/2.)
+        dx = _log_distance(x0, log_size)
+        x_text = _text_position(x0, log_size, scale='log')
     else:
         dx = dx_linear
-        x_text = x0 + dx/2.
+        x_text = _text_position(x0, dx)
     
     if ax.get_yscale() == 'log':
         log_size = dx_decades * slope
-        dy = loglog.displace(y0, log_size) - y0
-        y_text = loglog.displace(y0, log_size/2.)
+        dy = _log_distance(y0, log_size)
+        y_text = _text_position(y0, log_size, scale='log')
     else:
         dy = dx_linear * slope
-        y_text = y0 + dy/2.
+        y_text = _text_position(y0, dy)
         
     x_pad = pad_frac * dx
     y_pad = pad_frac * dy
@@ -70,6 +70,17 @@ def slope_marker(origin, slope, size_frac=0.1, pad_frac=0.15, ax=None,
         ax.text(x0+dx+x_pad, y_text, str(slope), ha=ha, va='center')
     
     ax.add_patch(_slope_triangle(origin, dx, dy))
+
+def _log_distance(x0, dx_decades):
+    return loglog.displace(x0, dx_decades) - x0
+
+def _text_position(x0, dx, scale='linear'):
+    if scale == 'linear':
+        return x0 + dx/2.
+    elif scale == 'log':
+        return loglog.displace(x0, dx/2.)
+    else:
+        raise ValueError('Unknown value for `scale`: %s' % scale)
 
 
 def _slope_triangle(origin, dx, dy, ec='none', fc='0.8', **poly_kwargs):
@@ -99,7 +110,7 @@ if __name__ == '__main__':
     slope_marker((10, .4), (-1, 2), ax=ax2)
     
     ax3.loglog(x, x**0.5)
-    slope_marker((10, 4), (1, 2), orientation='inverted', ax=ax3)
+    slope_marker((10, 4), (1, 2), invert=True, ax=ax3)
     
     ax4.loglog(x, x**0.5)
     slope_marker((10, 2), 0.5, ax=ax4)
