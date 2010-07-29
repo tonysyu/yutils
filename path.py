@@ -3,6 +3,21 @@ Path related helper functions.
 """
 import os
 import sys
+import glob
+
+
+def match_glob(pattern, path='.'):
+    """Yield all files matching given glob pattern
+    
+    Parameters
+    ----------
+    pattern : str
+        glob pattern to match (e.g. '*.py' will match 'foo.py' and 'bar.py')
+    path : str
+        path to desired files.
+    """
+    for match in glob.glob(os.path.join(path, pattern)):
+        yield match
 
 
 def join_to_filepath(filepath, relpath):
