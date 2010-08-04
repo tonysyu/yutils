@@ -17,6 +17,18 @@ def get_hg_revision(*args, **kwargs):
     msg = 'yutils.get_hg_revision moved to yutils.hg.get_revision'
     raise DeprecationWarning(msg)
 
+
+def where1d(array):
+    """Return indices where input array is True.
+    
+    Instead of returning a tuple of indices for each dimension (which is what
+    `numpy.where` does), return a single array of indices.
+    """
+    where = np.where(array)
+    assert len(where) == 1
+    return where[0]
+
+
 def iflatten(seq):
     """Iterate over sequence flattened by one level of nesting.
     
@@ -37,6 +49,7 @@ def iflatten(seq):
                 yield i
         else:
             yield sub
+
 
 def iterstep(iterator, n):
     """Yield every `n`th value of given `iterator`.
