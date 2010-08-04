@@ -17,6 +17,45 @@ def get_hg_revision(*args, **kwargs):
     msg = 'yutils.get_hg_revision moved to yutils.hg.get_revision'
     raise DeprecationWarning(msg)
 
+def iflatten(seq):
+    """Iterate over sequence flattened by one level of nesting.
+    
+    Example
+    -------
+    >>> list(iflatten([1, 2, 3]))
+    [1, 2, 3]
+    >>> list(iflatten([1, [2], [3]]))
+    [1, 2, 3]
+    >>> list(iflatten([[1, 2], [3]]))
+    [1, 2, 3]
+    >>> list(iflatten([[[1], 2], [3]]))
+    [[1], 2, 3]
+    """
+    for sub in seq:
+        if hasattr(sub, '__iter__'):
+            for i in sub:
+                yield i
+        else:
+            yield sub
+
+def iterstep(iterator, n):
+    """Yield every `n`th value of given `iterator`.
+    
+    Example
+    -------
+    >>> (n for n in range(10))
+    >>> for n in iterstep(count, 3):
+    ...     print n
+    0
+    3
+    6
+    9
+    """
+    while 1:
+        yield iterator.next()
+        for _ in range(n-1):
+            iterator.next()
+
 
 def attr_values(cls, attrs, sep=' = ', pre='\t', post='\n'):
     """Return string with names and values of attributes.
