@@ -19,7 +19,7 @@ def nonuniform_imshow(x, y, z, ax=None, **kwargs):
     return im
 
 
-def plot(x, y=None, c=0.5, edgecolor='k', ax=None, cmap=plt.cm.gray, **imargs):
+def plot(x, y=None, c=0.5, edgecolor='k', ax=None, cmap=plt.cm.gray, **kwargs):
     """Plot curve filled with fill that can vary in the x-direction.
     
     This plot function differs from `matplotlib.pyplot.fill` because it allows
@@ -46,10 +46,13 @@ def plot(x, y=None, c=0.5, edgecolor='k', ax=None, cmap=plt.cm.gray, **imargs):
     y_closed = np.concatenate([[0], y, [0]])
     # fill between doesn't work here b/c it returns a PolyCollection, plus it
     # adds the lower half of the plot by adding a Rect with a border
-    ax.plot(x, y, color=edgecolor)
+    if 'lw' in kwargs or 'linewidth' in kwargs:
+        linewidth = kwargs.pop('linewidth', None)
+        linewidth = kwargs.pop('lw', linewidth)
+    ax.plot(x, y, color=edgecolor, lw=linewidth)
     mask, = ax.fill(x_closed, y_closed, facecolor='none', edgecolor='none')
     im = nonuniform_imshow(x, [0, y.max()], np.vstack((c, c)), cmap=cmap, ax=ax,
-                           **imargs)
+                           **kwargs)
     im.set_clip_path(mask)
     return ax
 
