@@ -35,8 +35,10 @@ def plot(x, y=None, c=0.5, edgecolor='k', ax=None, cmap=plt.cm.gray, **kwargs):
         that match the lengths of `x` and `y`.
     ax : matplotlib.Axes instance
     """
+    x = np.asarray(x)
     if y is None:
         x, y = np.arange(len(x)), x
+    y = np.asarray(y)
     if not np.iterable(c):
         c = c * np.ones(len(x))
     if ax is None:
@@ -44,12 +46,11 @@ def plot(x, y=None, c=0.5, edgecolor='k', ax=None, cmap=plt.cm.gray, **kwargs):
     # add end points so that fill extends to the x-axis
     x_closed = np.concatenate([x[:1], x, x[-1:]])
     y_closed = np.concatenate([[0], y, [0]])
-    # fill between doesn't work here b/c it returns a PolyCollection, plus it
-    # adds the lower half of the plot by adding a Rect with a border
-    if 'lw' in kwargs or 'linewidth' in kwargs:
-        linewidth = kwargs.pop('linewidth', None)
-        linewidth = kwargs.pop('lw', linewidth)
+    lw_default = plt.rcParams['lines.linewidth']
+    linewidth = kwargs.pop('linewidth', None) or kwargs.pop('lw', lw_default)
     ax.plot(x, y, color=edgecolor, lw=linewidth)
+    # fill_between doesn't work here b/c it returns a PolyCollection, plus it
+    # adds the lower half of the plot by adding a Rect with a border
     mask, = ax.fill(x_closed, y_closed, facecolor='none', edgecolor='none')
     im = nonuniform_imshow(x, [0, y.max()], np.vstack((c, c)), cmap=cmap, ax=ax,
                            **kwargs)
