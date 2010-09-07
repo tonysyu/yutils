@@ -46,28 +46,33 @@ def slope_marker(origin, slope, size_frac=0.1, pad_frac=0.1, ax=None,
     if ax.get_xscale() == 'log':
         log_size = dx_decades
         dx = _log_distance(x0, log_size)
-        x_text = _text_position(x0, log_size, scale='log')
+        x_run = _text_position(x0, log_size/2., scale='log')
+        x_rise = _text_position(x0+dx, dx_decades*pad_frac, scale='log')
     else:
         dx = dx_linear
-        x_text = _text_position(x0, dx)
+        x_run = _text_position(x0, dx/2.)
+        x_rise = _text_position(x0+dx, pad_frac * dx)
     
     if ax.get_yscale() == 'log':
         log_size = dx_decades * slope
         dy = _log_distance(y0, log_size)
-        y_text = _text_position(y0, log_size, scale='log')
+        y_run = _text_position(y0, -dx_decades*slope*pad_frac, scale='log')
+        y_rise = _text_position(y0, log_size/2., scale='log')
     else:
         dy = dx_linear * slope
-        y_text = _text_position(y0, dy)
+        y_run = _text_position(y0, -(pad_frac * dy))
+        y_rise = _text_position(y0, dy/2.)
         
     x_pad = pad_frac * dx
     y_pad = pad_frac * dy
+
     va = 'top' if y_pad > 0 else 'bottom'
     ha = 'left' if x_pad > 0 else 'right'
     if rise is not None:
-        ax.text(x_text, y0-y_pad, str(run), va=va, ha='center')
-        ax.text(x0+dx+x_pad, y_text, str(rise), ha=ha, va='center')
+        ax.text(x_run, y_run, str(run), va=va, ha='center')
+        ax.text(x_rise, y_rise, str(rise), ha=ha, va='center')
     else:
-        ax.text(x0+dx+x_pad, y_text, str(slope), ha=ha, va='center')
+        ax.text(x_rise, y_rise, str(slope), ha=ha, va='center')
     
     ax.add_patch(_slope_triangle(origin, dx, dy))
 
@@ -76,9 +81,9 @@ def _log_distance(x0, dx_decades):
 
 def _text_position(x0, dx, scale='linear'):
     if scale == 'linear':
-        return x0 + dx/2.
+        return x0 + dx
     elif scale == 'log':
-        return loglog.displace(x0, dx/2.)
+        return loglog.displace(x0, dx)
     else:
         raise ValueError('Unknown value for `scale`: %s' % scale)
 
