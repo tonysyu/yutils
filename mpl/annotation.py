@@ -38,7 +38,6 @@ def slope_marker(origin, slope, size_frac=0.1, pad_frac=0.1, ax=None,
     dx_linear = size_frac * (xlim[1] - xlim[0])
     dx_decades = size_frac * (np.log10(xlim[1]) - np.log10(xlim[0]))
     
-    
     if invert:
         dx_linear = -dx_linear
         dx_decades = -dx_decades
