@@ -8,7 +8,7 @@ from matplotlib.transforms import TransformedBbox, Affine2D
 __all__ = ['tight_layout', 'tight', 'tight_borders', 'tight_subplot_spacing']
 
 
-PAD_INCHES = 0.1
+PAD_INCHES = 0.04
 
 
 def tight_layout(*args, **kwargs):
