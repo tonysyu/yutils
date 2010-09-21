@@ -5,7 +5,7 @@ LOWERCASE_WORDS = ['a',   'an',   'and',  'as',   'at',   'by',   'de',
                    'et',  'for',  'from', 'in',   'into', 'of',   'on',
                    'or',  'the',  'their','then', 'to',   'with', "'s"]
 
-UPPERCASE_WORDS = ['SIAM', 'AICHE', 'ISIJ', 'IEEE']
+UPPERCASE_WORDS = ['SIAM', 'AICHE', 'ISIJ', 'IEEE', 'II', 'III', 'AIME', 'EPL']
 
 FIRST_WORD = re.compile(r'^\b\w+')
 ALL_WORDS = re.compile(r'\b\w+')
