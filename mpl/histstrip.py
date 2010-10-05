@@ -54,9 +54,9 @@ def histstrip(x, positions=None, widths=None, width_frac=0.5, median=True,
         positions = np.arange(len(x)) + 1
     if widths is None:
         if ax.xaxis.get_scale() == 'log':
-            widths = np.min(np.diff(np.log10(positions))) / 2.
+            widths = np.min(np.diff(np.log10(positions))) * width_frac
         else:
-            widths = np.min(np.diff(positions)) / 2.
+            widths = np.min(np.diff(positions)) * width_frac
     if np.isscalar(widths):
         widths = np.ones(len(positions), float) * widths
     hist_kw = dict()
@@ -67,6 +67,7 @@ def histstrip(x, positions=None, widths=None, width_frac=0.5, median=True,
     median_kw.update(median_kwargs)
     if isinstance(norm, basestring):
         norm = NORM_TYPES[norm]
+    x = [np.asarray(d)[~np.isnan(d)] for d in x]
     for data, x_pos, w in zip(x, positions, widths):
         hist, bin_edges = np.histogram(data, **hist_kw)
         c = norm(hist)
