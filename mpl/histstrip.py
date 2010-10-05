@@ -24,15 +24,15 @@ def _x_extents(x_center, width):
     return width/2. * np.array([-1, 1]) + x_center
 
 
-def pcolor_bar(hist, bin_edges, x_pos=0, width=1, norm_type='max', 
+def pcolor_bar(c, y_edges, x_pos=0, width=1, norm_type='max', 
                **pcolor_kwargs):
-    N = len(bin_edges)
+    N = len(y_edges)
     xx = _x_extents(x_pos, width) * np.ones((N, 1))
-    yy = np.ones(2) * bin_edges[:, np.newaxis]
+    yy = np.ones(2) * y_edges[:, np.newaxis]
     norm = NORM_TYPES[norm_type]
     if 'cmap' not in pcolor_kwargs:
         pcolor_kwargs['cmap'] = plt.cm.gray_r
-    plt.pcolor(xx, yy, hist[:, np.newaxis], **pcolor_kwargs)
+    plt.pcolor(xx, yy, c[:, np.newaxis], **pcolor_kwargs)
 
 
 def histstrip(x, positions=None, widths=None, ax=None, median=False, 
