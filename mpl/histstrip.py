@@ -40,7 +40,7 @@ def pcolor_bar(c, y_edges, x_pos=0, width=1, **pcolor_kwargs):
     plt.pcolor(xx, yy, c[:, np.newaxis], **pcolor_kwargs)
 
 
-def histstrip(x, positions=None, widths=None, ax=None, median=False, norm='max', 
+def histstrip(x, positions=None, widths=None, ax=None, median=True, norm='max', 
               median_kwargs=None, hist_kwargs=None, pcolor_kwargs=None):
     if ax is None:
         ax = plt.gca()
@@ -51,7 +51,7 @@ def histstrip(x, positions=None, widths=None, ax=None, median=False, norm='max',
     if hist_kwargs is None:
         hist_kwargs = dict()
     if pcolor_kwargs is None:
-        pcolor_kwargs = dict(vmin=0, vmax=1)
+        pcolor_kwargs = dict(vmin=0, vmax=1, edgecolor='k')
     if median_kwargs is None:
         median_kwargs = dict(color='r')
     if isinstance(norm, basestring):
@@ -69,17 +69,10 @@ def histstrip(x, positions=None, widths=None, ax=None, median=False, norm='max',
 
 if __name__ == '__main__':
     np.random.seed(2)
-    inc = 1
-    e1 = np.random.normal(0,1, size=(500,))
-    e2 = np.random.normal(0,1, size=(500,))
-    e3 = np.random.normal(0,1, size=(500,)) + inc
-    e4 = np.random.normal(0,1, size=(500,)) + 2*inc
-
-    treatments = [e1,e2,e3,e4]
-
+    treatments = [np.random.normal(0,1, size=(500,))+dy for dy in (0, 0, 1, 2)]
+    
     fig, ax = plt.subplots()
-
-    histstrip(treatments, ax=ax, pcolor_kwargs=dict(edgecolor='k'), median=True)
+    histstrip(treatments, ax=ax)
     ax.set_xlabel('treatment')
     ax.set_ylabel('response')
     fig.subplots_adjust(right=0.99,top=0.99)
