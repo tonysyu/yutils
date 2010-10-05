@@ -20,6 +20,7 @@ from matplotlib import collections
 
 NORM_TYPES = dict(max=max, sum=sum)
 
+
 def _x_extents(x_center, width):
     return width/2. * np.array([-1, 1]) + x_center
 
@@ -33,9 +34,8 @@ def pcolor_bar(c, y_edges, x_pos=0, width=1, **pcolor_kwargs):
     plt.pcolor(xx, yy, c[:, np.newaxis], **pcolor_kwargs)
 
 
-def histstrip(x, positions=None, widths=None, ax=None, median=False, 
-              norm_type='max', median_kwargs=None, hist_kwargs=None, 
-              pcolor_kwargs=None):
+def histstrip(x, positions=None, widths=None, ax=None, median=False, norm='max', 
+              median_kwargs=None, hist_kwargs=None, pcolor_kwargs=None):
     if ax is None:
         ax = plt.gca()
     if positions is None:
@@ -48,7 +48,8 @@ def histstrip(x, positions=None, widths=None, ax=None, median=False,
         pcolor_kwargs = dict(vmin=0, vmax=1)
     if median_kwargs is None:
         median_kwargs = dict(color='r')
-    norm = NORM_TYPES[norm_type]
+    if isinstance(norm, basestring):
+        norm = NORM_TYPES[norm]
     for data, x_pos, w in zip(x, positions, widths):
         hist, bin_edges = np.histogram(data, **hist_kwargs)
         c = hist.astype(float) / norm(hist)
