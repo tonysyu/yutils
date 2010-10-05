@@ -1,5 +1,16 @@
 """
-First attempt at a histogram strip chart (made up name).
+Histogram strip chart
+
+This plot is a hybrid between a box plot and a histogram, where each vertical
+strip represents a distribution (much like the box in a box plot) and the
+color represents the stands in for histogram-height for the distribution. This
+plot conveys roughly the same information as a violin plot [1] or bean plot [2].
+
+
+[1] Hintze, J. L. and Nelson, R. D., "Violin plots, a box plot-density trace
+    synergism", The American Statistician (1998)
+[2] Kampstra, P., "Beanplot: A Boxplot Alternative for Visual Comparison of 
+    Distributions", Journal of Statistical Software (2008)
 """
 
 import numpy as np
