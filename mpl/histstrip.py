@@ -28,7 +28,10 @@ NORM_TYPES = dict(max=_norm_max, sum=_norm_sum)
 
 
 def _x_extents(x_center, width, ax):
-    return width/2. * np.array([-1, 1]) + x_center
+    x_relative = width/2. * np.array([-1, 1])
+    if ax.xaxis.get_scale() == 'log':
+        return 10**(np.log10(x_center) + x_relative)
+    return  x_relative + x_center
 
 
 def pcolor_bar(c, y_edges, x_pos=0, width=1, ax=None, **kwargs):
@@ -42,14 +45,20 @@ def pcolor_bar(c, y_edges, x_pos=0, width=1, ax=None, **kwargs):
     ax.pcolor(xx, yy, c[:, np.newaxis], **kwargs)
 
 
-def histstrip(x, positions=None, widths=None, ax=None, median=True, norm='max', 
-              median_kwargs=(), hist_kwargs=(), pcolor_kwargs=()):
+def histstrip(x, positions=None, widths=None, width_frac=0.5, median=True, 
+              norm='max', ax=None, median_kwargs=(), hist_kwargs=(), 
+              pcolor_kwargs=()):
     if ax is None:
         ax = plt.gca()
     if positions is None:
-        positions = range(1, len(x) + 1)
+        positions = np.arange(len(x)) + 1
     if widths is None:
-        widths = np.min(np.diff(positions)) / 2. * np.ones(len(positions))
+        if ax.xaxis.get_scale() == 'log':
+            widths = np.min(np.diff(np.log10(positions))) / 2.
+        else:
+            widths = np.min(np.diff(positions)) / 2.
+    if np.isscalar(widths):
+        widths = np.ones(len(positions), float) * widths
     hist_kw = dict()
     hist_kw.update(hist_kwargs)
     pcolor_kw = dict(vmin=0, vmax=1, edgecolor='k')
@@ -63,9 +72,9 @@ def histstrip(x, positions=None, widths=None, ax=None, median=True, norm='max',
         c = norm(hist)
         pcolor_bar(c, bin_edges, width=w, x_pos=x_pos, ax=ax, **pcolor_kw)
         if median:
-            x = _x_extents(x_pos, w, ax)
-            y = np.median(data) * np.ones(2)
-            ax.plot(x, y, **median_kw)
+            x_med = _x_extents(x_pos, w, ax)
+            y_med = np.median(data) * np.ones(2)
+            ax.plot(x_med, y_med, **median_kw)
     ax.set_xticks(positions)
 
 
@@ -78,4 +87,12 @@ if __name__ == '__main__':
     ax.set_xlabel('treatment')
     ax.set_ylabel('response')
     fig.subplots_adjust(right=0.99,top=0.99)
+    
+    fig, ax = plt.subplots()
+    ax.set_xscale('log')
+    histstrip(treatments, positions=np.logspace(0, 3, 4), ax=ax)
+    ax.set_xlabel('treatment')
+    ax.set_ylabel('response')
+    fig.subplots_adjust(right=0.99,top=0.99)
+    
     plt.show()
