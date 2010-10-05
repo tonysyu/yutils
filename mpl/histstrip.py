@@ -20,11 +20,14 @@ from matplotlib import collections
 
 NORM_TYPES = dict(max=max, sum=sum)
 
+def _x_extents(x_center, width):
+    return width/2. * np.array([-1, 1]) + x_center
 
-def swatch(hist, bin_edges, x_pos=0, width=1, norm_type='max', **pcolor_kwargs):
-    x = (width/2. * np.array([-1, 1]) + x_pos)
+
+def pcolor_bar(hist, bin_edges, x_pos=0, width=1, norm_type='max', 
+               **pcolor_kwargs):
     N = len(bin_edges)
-    xx = x * np.ones((N, 1))
+    xx = _x_extents(x_pos, width) * np.ones((N, 1))
     yy = np.ones(2) * bin_edges[:, np.newaxis]
     norm = NORM_TYPES[norm_type]
     if 'cmap' not in pcolor_kwargs:
@@ -32,8 +35,8 @@ def swatch(hist, bin_edges, x_pos=0, width=1, norm_type='max', **pcolor_kwargs):
     plt.pcolor(xx, yy, hist[:, np.newaxis], **pcolor_kwargs)
 
 
-def histstrip(x, positions=None, widths=None, ax=None, hist_kwargs=None, 
-              pcolor_kwargs=None):
+def histstrip(x, positions=None, widths=None, ax=None, median=False, 
+              median_kwargs=None, hist_kwargs=None, pcolor_kwargs=None):
     if ax is None:
         ax = plt.gca()
     if positions is None:
@@ -44,9 +47,15 @@ def histstrip(x, positions=None, widths=None, ax=None, hist_kwargs=None,
         hist_kwargs = dict()
     if pcolor_kwargs is None:
         pcolor_kwargs = dict()
+    if median_kwargs is None:
+        median_kwargs = dict(color='r')
     for data, x_pos, w in zip(x, positions, widths):
         hist, bin_edges = np.histogram(data, **hist_kwargs)
-        swatch(hist, bin_edges, width=w, x_pos=x_pos, **pcolor_kwargs)
+        pcolor_bar(hist, bin_edges, width=w, x_pos=x_pos, **pcolor_kwargs)
+        if median:
+            x = _x_extents(x_pos, w)
+            y = np.median(data) * np.ones(2)
+            ax.plot(x, y, **median_kwargs)
     ax.set_xticks(positions)
 
 
@@ -62,7 +71,7 @@ if __name__ == '__main__':
 
     fig, ax = plt.subplots()
 
-    histstrip(treatments, ax=ax)
+    histstrip(treatments, ax=ax, pcolor_kwargs=dict(edgecolor='k'), median=True)
     ax.set_xlabel('treatment')
     ax.set_ylabel('response')
     fig.subplots_adjust(right=0.99,top=0.99)
