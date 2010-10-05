@@ -31,39 +31,39 @@ def _x_extents(x_center, width):
     return width/2. * np.array([-1, 1]) + x_center
 
 
-def pcolor_bar(c, y_edges, x_pos=0, width=1, **pcolor_kwargs):
+def pcolor_bar(c, y_edges, x_pos=0, width=1, **kwargs):
     N = len(y_edges)
     xx = _x_extents(x_pos, width) * np.ones((N, 1))
     yy = np.ones(2) * y_edges[:, np.newaxis]
-    if 'cmap' not in pcolor_kwargs:
-        pcolor_kwargs['cmap'] = plt.cm.gray_r
-    plt.pcolor(xx, yy, c[:, np.newaxis], **pcolor_kwargs)
+    if 'cmap' not in kwargs:
+        kwargs['cmap'] = plt.cm.gray_r
+    plt.pcolor(xx, yy, c[:, np.newaxis], **kwargs)
 
 
 def histstrip(x, positions=None, widths=None, ax=None, median=True, norm='max', 
-              median_kwargs=None, hist_kwargs=None, pcolor_kwargs=None):
+              median_kwargs=(), hist_kwargs=(), pcolor_kwargs=()):
     if ax is None:
         ax = plt.gca()
     if positions is None:
         positions = range(1, len(x) + 1)
     if widths is None:
         widths = np.min(np.diff(positions)) / 2. * np.ones(len(positions))
-    if hist_kwargs is None:
-        hist_kwargs = dict()
-    if pcolor_kwargs is None:
-        pcolor_kwargs = dict(vmin=0, vmax=1, edgecolor='k')
-    if median_kwargs is None:
-        median_kwargs = dict(color='r')
+    hist_kw = dict()
+    hist_kw.update(hist_kwargs)
+    pcolor_kw = dict(vmin=0, vmax=1, edgecolor='k')
+    pcolor_kw.update(pcolor_kwargs)
+    median_kw = dict(color='r')
+    median_kw.update(median_kwargs)
     if isinstance(norm, basestring):
         norm = NORM_TYPES[norm]
     for data, x_pos, w in zip(x, positions, widths):
-        hist, bin_edges = np.histogram(data, **hist_kwargs)
+        hist, bin_edges = np.histogram(data, **hist_kw)
         c = norm(hist)
-        pcolor_bar(c, bin_edges, width=w, x_pos=x_pos, **pcolor_kwargs)
+        pcolor_bar(c, bin_edges, width=w, x_pos=x_pos, **pcolor_kw)
         if median:
             x = _x_extents(x_pos, w)
             y = np.median(data) * np.ones(2)
-            ax.plot(x, y, **median_kwargs)
+            ax.plot(x, y, **median_kw)
     ax.set_xticks(positions)
 
 
