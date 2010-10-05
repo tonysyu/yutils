@@ -18,7 +18,13 @@ import matplotlib.pyplot as plt
 from matplotlib import collections
 
 
-NORM_TYPES = dict(max=max, sum=sum)
+def _norm_max(x):
+    return x.astype(float) / max(x)
+
+def _norm_sum(x):
+    return x.astype(float) / sum(x)
+
+NORM_TYPES = dict(max=_norm_max, sum=_norm_sum)
 
 
 def _x_extents(x_center, width):
@@ -52,7 +58,7 @@ def histstrip(x, positions=None, widths=None, ax=None, median=False, norm='max',
         norm = NORM_TYPES[norm]
     for data, x_pos, w in zip(x, positions, widths):
         hist, bin_edges = np.histogram(data, **hist_kwargs)
-        c = hist.astype(float) / norm(hist)
+        c = norm(hist)
         pcolor_bar(c, bin_edges, width=w, x_pos=x_pos, **pcolor_kwargs)
         if median:
             x = _x_extents(x_pos, w)
