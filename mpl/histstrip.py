@@ -27,17 +27,19 @@ def _norm_sum(x):
 NORM_TYPES = dict(max=_norm_max, sum=_norm_sum)
 
 
-def _x_extents(x_center, width):
+def _x_extents(x_center, width, ax):
     return width/2. * np.array([-1, 1]) + x_center
 
 
-def pcolor_bar(c, y_edges, x_pos=0, width=1, **kwargs):
+def pcolor_bar(c, y_edges, x_pos=0, width=1, ax=None, **kwargs):
+    if ax is None:
+        ax = plt.gca()
     N = len(y_edges)
-    xx = _x_extents(x_pos, width) * np.ones((N, 1))
+    xx = _x_extents(x_pos, width, ax) * np.ones((N, 1))
     yy = np.ones(2) * y_edges[:, np.newaxis]
     if 'cmap' not in kwargs:
         kwargs['cmap'] = plt.cm.gray_r
-    plt.pcolor(xx, yy, c[:, np.newaxis], **kwargs)
+    ax.pcolor(xx, yy, c[:, np.newaxis], **kwargs)
 
 
 def histstrip(x, positions=None, widths=None, ax=None, median=True, norm='max', 
@@ -59,9 +61,9 @@ def histstrip(x, positions=None, widths=None, ax=None, median=True, norm='max',
     for data, x_pos, w in zip(x, positions, widths):
         hist, bin_edges = np.histogram(data, **hist_kw)
         c = norm(hist)
-        pcolor_bar(c, bin_edges, width=w, x_pos=x_pos, **pcolor_kw)
+        pcolor_bar(c, bin_edges, width=w, x_pos=x_pos, ax=ax, **pcolor_kw)
         if median:
-            x = _x_extents(x_pos, w)
+            x = _x_extents(x_pos, w, ax)
             y = np.median(data) * np.ones(2)
             ax.plot(x, y, **median_kw)
     ax.set_xticks(positions)
