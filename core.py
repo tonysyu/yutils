@@ -51,6 +51,23 @@ def iflatten(seq):
             yield sub
 
 
+def interlace(*args):
+    """Return array with input array values interlaced.
+    
+    Any number of input arrays greater than 1 is accepted. All input arrays
+    must have the same length. The returned interlaced array has a length equal
+    to the sum of the lengths of all input arrays.
+    
+    For example,
+    >>> x = [1, 3, 5, 7]
+    >>> y = [2, 4, 6, 8]
+    >>> interlace(x, y)
+    array([1, 2, 3, 4, 5, 6, 7, 8])
+    """
+    assert len(args) > 0
+    return np.column_stack(args).ravel()
+
+
 def iterstep(iterator, n):
     """Yield every `n`th value of given `iterator`.
     
@@ -177,7 +194,7 @@ def arg_nearest(arr, value, atol=None, rtol=None):
     >>> arg_nearest(a, 3.1, rtol=0.1)
     2
     """
-    abs_diff = np.abs(arr - value)
+    abs_diff = np.abs(np.asarray(arr) - value)
     idx = abs_diff.argmin()
     if atol is not None:
         if abs_diff[idx] > atol:
