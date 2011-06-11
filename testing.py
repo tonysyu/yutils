@@ -7,12 +7,50 @@ import cProfile
 import tempfile
 
 
-def profile(cmd, numstats=20):
+def profile(cmd, numstats=20, sort='cumulative'):
+    """Profile command and print statistics
+
+    Parameters
+    ----------
+    cmd : str or func
+        command to be profiled. If string, `cmd` is passed to `exec`. If
+        function, it is called without arguments. For example, you can define
+        a function ``run = lambda : func_to_profile(arg_1, arg_2,...)`` and
+        pass ``run`` to `cmd`.
+    numstats : int
+        number of function statistics to print
+    sort : str
+        sorting method
+
+        +------------------+----------------------+
+        | Valid Arg        | Meaning              |
+        +==================+======================+
+        | ``'calls'``      | call count           |
+        +------------------+----------------------+
+        | ``'cumulative'`` | cumulative time      |
+        +------------------+----------------------+
+        | ``'file'``       | file name            |
+        +------------------+----------------------+
+        | ``'module'``     | file name            |
+        +------------------+----------------------+
+        | ``'pcalls'``     | primitive call count |
+        +------------------+----------------------+
+        | ``'line'``       | line number          |
+        +------------------+----------------------+
+        | ``'name'``       | function name        |
+        +------------------+----------------------+
+        | ``'nfl'``        | name/file/line       |
+        +------------------+----------------------+
+        | ``'stdname'``    | standard name        |
+        +------------------+----------------------+
+        | ``'time'``       | internal time        |
+        +------------------+----------------------+
+    """
     stat_file = 'profile_run_TRASH_ME.stats'
     cProfile.run(cmd, stat_file)
     stats = pstats.Stats(stat_file)
     stats.strip_dirs()
-    stats.sort_stats('cumulative').print_stats(numstats)
+    stats.sort_stats(sort).print_stats(numstats)
     os.remove(stat_file)
 
 
