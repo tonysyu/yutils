@@ -10,19 +10,19 @@ UPPERCASE_WORDS = ['SIAM', 'AICHE', 'ISIJ', 'IEEE', 'II', 'III', 'AIME', 'EPL']
 FIRST_WORD = re.compile(r'^\b\w+')
 ALL_WORDS = re.compile(r'\b\w+')
 
-    
+
 def titlecase(title_string):
     """Return string that is converted to title case.
-    
+
     Unlike the `title` method of the `str` built-in, this function converts
     some words to lowercase/uppercase.
-    
+
     Articles, prepositions and conjunctions are left as lowercase; these words
-    are set by LOWERCASE_WORDS. Similarly, UPPERCASE_WORDS lists words that 
+    are set by LOWERCASE_WORDS. Similarly, UPPERCASE_WORDS lists words that
     should be uppercase.
-    
-    Note that words with apostrophes are improperly title cased, because 
-    `str.title` doesn't recognize apostrophes are part of the 
+
+    Note that words with apostrophes are improperly title cased, because
+    `str.title` doesn't recognize apostrophes are part of the
     """
     title_string = ALL_WORDS.sub(_titlecase_all, title_string)
     title_string = FIRST_WORD.sub(_titlecase_first, title_string)

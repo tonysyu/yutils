@@ -7,7 +7,7 @@ __all__ = ['fit_range', 'displace', 'line_x', 'line_y']
 
 def fit_range(x_data, y_data, x_range=None, return_dict=False):
     """Return slope of log-log fit over specified data range
-    
+
     Parameters
     ----------
     x_data, y_data: array
@@ -47,10 +47,10 @@ def fit_range(x_data, y_data, x_range=None, return_dict=False):
 
 def displace(x0, dx_log=None, x1=None, frac=None):
     """Return point displaced by a logarithmic value.
-    
+
     For example, if you want to move 1 decade away from `x0`, set `dx_log` = 1,
     such that for `x0` = 10, we have `displace(10, 1)` = 100
-    
+
     Parameters
     ----------
     x0 : float
@@ -72,9 +72,9 @@ def displace(x0, dx_log=None, x1=None, frac=None):
 
 def line_x(x0, y0, y=None, dy=None, slope=1., frac=1.):
     """Return x-value at given y on a specified line.
-    
+
     Either `y` or `dy` must be specified.
-    
+
     Parameters
     ----------
     x0, y0: float
@@ -97,7 +97,7 @@ def line_x(x0, y0, y=None, dy=None, slope=1., frac=1.):
 
 def line_y(x0, y0, x=None, dx=None, slope=1., frac=1.):
     """Return y-value at given x on a specified line.
-    
+
     Parameters
     ----------
     x0, y0: float

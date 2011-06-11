@@ -9,7 +9,7 @@ plot conveys roughly the same information as a violin plot [1] or bean plot [2].
 
 [1] Hintze, J. L. and Nelson, R. D., "Violin plots, a box plot-density trace
     synergism", The American Statistician (1998)
-[2] Kampstra, P., "Beanplot: A Boxplot Alternative for Visual Comparison of 
+[2] Kampstra, P., "Beanplot: A Boxplot Alternative for Visual Comparison of
     Distributions", Journal of Statistical Software (2008)
 """
 
@@ -45,8 +45,8 @@ def pcolor_bar(c, y_edges, x_pos=0, width=1, ax=None, **kwargs):
     ax.pcolor(xx, yy, c[:, np.newaxis], **kwargs)
 
 
-def histstrip(x, positions=None, widths=None, width_frac=0.5, median=True, 
-              norm='max', ax=None, median_kwargs=(), hist_kwargs=(), 
+def histstrip(x, positions=None, widths=None, width_frac=0.5, median=True,
+              norm='max', ax=None, median_kwargs=(), hist_kwargs=(),
               pcolor_kwargs=()):
     if ax is None:
         ax = plt.gca()
@@ -82,18 +82,18 @@ def histstrip(x, positions=None, widths=None, width_frac=0.5, median=True,
 if __name__ == '__main__':
     np.random.seed(2)
     treatments = [np.random.normal(0,1, size=(500,))+dy for dy in (0, 0, 1, 2)]
-    
+
     fig, ax = plt.subplots()
     histstrip(treatments, ax=ax)
     ax.set_xlabel('treatment')
     ax.set_ylabel('response')
     fig.subplots_adjust(right=0.99,top=0.99)
-    
+
     fig, ax = plt.subplots()
     ax.set_xscale('log')
     histstrip(treatments, positions=np.logspace(0, 3, 4), ax=ax)
     ax.set_xlabel('treatment')
     ax.set_ylabel('response')
     fig.subplots_adjust(right=0.99,top=0.99)
-    
+
     plt.show()

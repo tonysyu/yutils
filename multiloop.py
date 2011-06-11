@@ -67,13 +67,13 @@ import re, operator
 
 def str2bool(s):
     """Return bool for strings which "sound" like bool
-    
+
     Parameters
     ----------
     s : str
-        any of the following: 'on', 'off', 'True', 'False', 'yes', 'no' (case 
+        any of the following: 'on', 'off', 'True', 'False', 'yes', 'no' (case
         insensitive)
-    
+
     Example
     -------
     >>> str2bool('OFF')
@@ -99,7 +99,7 @@ def str2bool(s):
 
 def str2obj(s, globals=globals(), locals=locals(), debug=False):
     """Return object from string.
-    
+
     Useful for taking a string from a GUI or the command line and creating a
     Python object. For example::
 
@@ -110,7 +110,7 @@ def str2obj(s, globals=globals(), locals=locals(), debug=False):
     >>> s = str2obj('(1,8)')
     >>> print s, type(s)
     (1, 8) <type 'tuple'>
-    
+
     Method: eval(s) can normally do the job, but if s is meant to
     be turned into a string object, eval works only if s has explicit
     quotes:
@@ -144,7 +144,7 @@ def str2obj(s, globals=globals(), locals=locals(), debug=False):
     "true" -> True <type 'bool'>
     "ON" -> True <type 'bool'>
     "no" -> False <type 'bool'>
-    
+
     If the name of a user defined function, class or instance is
     sent to str2obj, the calling code must also send locals() and
     globals() dictionaries as extra arguments. Otherwise, str2obj
@@ -152,15 +152,15 @@ def str2obj(s, globals=globals(), locals=locals(), debug=False):
     object (user-defined types are unknown inside str2obj unless
     the calling code's globals and locals are provided).
     Here is an example::
-    
+
     >>> def myf(x):
     ...     return 1+x
-    ... 
+    ...
     >>> class A:
     ...     pass
-    ... 
+    ...
     >>> a = A()
-    >>> 
+    >>>
     >>> s = str2obj('myf')
     >>> print s, type(s)   # now s is simply the string 'myf'
     myf <type 'str'>
@@ -231,7 +231,7 @@ def input2values(s):
     """
     if not isinstance(s, basestring):
         return s
-    
+
     items = s.split('&')
 
     values = []
@@ -276,7 +276,7 @@ def _outer(a, b):
     Return:  outer combination 'all'.
 
     The function is to be called repeatedly::
-    
+
         all = _outer(all, p)
     """
     all = []
@@ -427,7 +427,7 @@ def remove(condition, all, names):
         if eval(c):  # if condition
             all.remove(ex)
     return all  # modified list
-    
+
 
 def _test1():
     s1 = ' -3.4 & [0:4,1.2] & [1:4,*1.5] & [0.5:6E-2,  *0.5]'
@@ -483,7 +483,7 @@ class MultipleLoop:
     the multipleloop module.
 
     Typical application::
-    
+
       p = {'name1': 'multiple values', 'name2': 'values', ...}
       experiments = scitools.multipleloop.MultipleLoop(option_prefix='-')
       for name in p:
@@ -493,7 +493,7 @@ class MultipleLoop:
           <extract results and save>
 
     Attributes (m is some MultipleLoop object):
-    
+
       - m.names        names of all parameters
       - m.varied       names of parameters with multiple values
       - m.options      list of strings of all command-line arguments
@@ -529,7 +529,7 @@ class MultipleLoop:
         self.options = options(self.all, self.names, prefix=self.option_prefix)
         # return no of removed experiments:
         return nex_orig-len(self.all)
-        
+
     def __iter__(self):
         if not self.combined: self.combine()
         self.counter = 0
@@ -545,11 +545,11 @@ class MultipleLoop:
         self.counter += 1
         return self.cmlargs, self.parameters, self.varied_parameters
 
-        
+
 if __name__ == '__main__':
     import doctest
     _test1()
     _test2()
     doctest.testmod()
-    
-    
+
+

@@ -8,7 +8,7 @@ import glob
 
 def match_glob(pattern, path='.'):
     """Yield all files matching given glob pattern
-    
+
     Parameters
     ----------
     pattern : str
@@ -22,13 +22,13 @@ def match_glob(pattern, path='.'):
 
 def join_to_filepath(filepath, relpath):
     """Return absolute path from filepath and relative path.
-    
+
     The function is useful for appending a path relative to the main file.
     In this case, you would call:
-    
+
     >>> join_to_filepath('/absolute/path/file.ext', 'relative/path/to/file')
     '/absolute/path/relative/path/to/file'
-    
+
     Parameters
     ----------
     filepath : str

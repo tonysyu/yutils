@@ -18,7 +18,7 @@ def tight_layout(*args, **kwargs):
 
 def tight(pad_inches=PAD_INCHES, h_pad_inches=None, w_pad_inches=None):
     """Adjust subplot parameters to give specified padding.
-    
+
     Parameters
     ----------
     pad_inches : float
@@ -48,16 +48,16 @@ def tight_borders(fig, renderer, pad_inches=PAD_INCHES):
     fig.draw(renderer)
     bbox_original = fig.bbox_inches
     bbox_tight = fig.get_tightbbox(renderer).padded(pad_inches)
-    
+
     # figure dimensions ordered like bbox.extents: x0, y0, x1, y1
     lengths = np.array([bbox_original.width, bbox_original.height,
                         bbox_original.width, bbox_original.height])
     whitespace = (bbox_tight.extents - bbox_original.extents) / lengths
-    
+
     # border padding ordered like bbox.extents: x0, y0, x1, y1
     current_borders = np.array([fig.subplotpars.left, fig.subplotpars.bottom,
                                 fig.subplotpars.right, fig.subplotpars.top])
-    
+
     left, bottom, right, top = current_borders - whitespace
     fig.subplots_adjust(bottom=bottom, top=top, left=left, right=right)
 
@@ -67,11 +67,11 @@ def tight_subplot_spacing(fig, renderer, h_pad_inches, w_pad_inches):
     # Zero hspace and wspace to make it easier to calculate the spacing.
     fig.subplots_adjust(hspace=0, wspace=0)
     fig.draw(renderer)
-    
+
     figbox = fig.bbox_inches
     ax_bottom, ax_top, ax_left, ax_right = _get_grid_boundaries(fig, renderer)
     nrows, ncols = ax_bottom.shape
-    
+
     subplots_height = fig.subplotpars.top - fig.subplotpars.bottom
     if nrows > 1:
         h_overlap_inches = ax_top[1:] - ax_bottom[:-1]
@@ -79,7 +79,7 @@ def tight_subplot_spacing(fig, renderer, h_pad_inches, w_pad_inches):
         hspace_fig_frac = hspace_inches / figbox.height
         hspace = _fig_frac_to_cell_frac(hspace_fig_frac, subplots_height, nrows)
         fig.subplots_adjust(hspace=hspace)
-    
+
     subplots_width = fig.subplotpars.right - fig.subplotpars.left
     if ncols > 1:
         w_overlap_inches = ax_right[:,:-1] - ax_left[:,1:]
@@ -91,7 +91,7 @@ def tight_subplot_spacing(fig, renderer, h_pad_inches, w_pad_inches):
 
 def _get_grid_boundaries(fig, renderer):
     """Return grid boundaries for bboxes of subplots
-    
+
     Returns
     -------
     ax_bottom, ax_top, ax_left, ax_right : array
@@ -99,8 +99,8 @@ def _get_grid_boundaries(fig, renderer):
         boundaries cutting through that subplot will be masked.
     """
     nrows, ncols, n = fig.axes[0].get_geometry()
-    # Initialize boundaries as masked arrays; in the future, support subplots 
-    # that span multiple rows/columns, which would have masked values for grid 
+    # Initialize boundaries as masked arrays; in the future, support subplots
+    # that span multiple rows/columns, which would have masked values for grid
     # boundaries that cut through the subplot.
     ax_bottom, ax_top, ax_left, ax_right = [np.ma.masked_all((nrows, ncols))
                                             for n in range(4)]
@@ -120,7 +120,7 @@ def _get_grid_boundaries(fig, renderer):
 
 def _fig_frac_to_cell_frac(fig_frac, subplots_frac, num_cells):
     """Return fraction of cell (row/column) from a given fraction of the figure
-    
+
     Parameters
     ----------
     fig_frac : float
@@ -130,7 +130,7 @@ def _fig_frac_to_cell_frac(fig_frac, subplots_frac, num_cells):
     num_cells : int
         number of rows or columns.
     """
-    # This function is reverse engineered from the calculation of `sepH` and 
+    # This function is reverse engineered from the calculation of `sepH` and
     # `sepW` in  `GridSpecBase.get_grid_positions`.
     return (fig_frac * num_cells) / (subplots_frac - fig_frac*(num_cells-1))
 
@@ -144,7 +144,7 @@ if __name__ == '__main__':
         ax.set_xlabel('x-label', fontsize=fontsizes[np.random.randint(len(fontsizes))])
         ax.set_ylabel('y-label', fontsize=fontsizes[np.random.randint(len(fontsizes))])
         ax.set_title('Title', fontsize=fontsizes[np.random.randint(len(fontsizes))])
-    
+
     fig = plt.figure()
     example_plot(plt.subplot(1, 1, 1))
     tight()

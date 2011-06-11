@@ -13,11 +13,11 @@ __all__ = ['plot']
 
 
 def plot(xs, ys, spillover=False,
-         x_offset=None, y_offset=None, 
-         x_pct_offset=0.5, y_pct_offset=5., 
+         x_offset=None, y_offset=None,
+         x_pct_offset=0.5, y_pct_offset=5.,
          color=None, z_label='', z_final=None, ax=None):
     """Plot sequential curves with later curves shifted diagonally.
-    
+
     Parameters
     ----------
     xs, ys : array (or nested list)
@@ -33,9 +33,9 @@ def plot(xs, ys, spillover=False,
         percentage of domain size used to calculate offsets when not specified.
         Only used if `x_offset`/`y_offset` is not specified.
     z_label : str
-        
+
     z_final : value
-        Value of final 
+        Value of final
     color : color
         a valid matplotlib color
     """
@@ -58,7 +58,7 @@ def plot(xs, ys, spillover=False,
     ax.add_collection(col)
     ax.autoscale_view()
     x_offset_total, y_offset_total = np.array(offsets) * (n+1)
-    _plot_z_axis(x_offset_total, y_offset_total, y_left_max, z_label, z_final, 
+    _plot_z_axis(x_offset_total, y_offset_total, y_left_max, z_label, z_final,
                  color, ax)
 
 
@@ -82,12 +82,12 @@ def _calculate_offsets(xs, ys, x_offset, y_offset, x_pct_offset, y_pct_offset):
     return x_offset, y_offset
 
 
-def _plot_z_axis(x_offset_total, y_offset_total, y_left_max, z_label, z_final, 
+def _plot_z_axis(x_offset_total, y_offset_total, y_left_max, z_label, z_final,
                  color, ax):
     arrowprops = dict(facecolor='black', arrowstyle='<|-', relpos=(0.5, 0.5))
     start_arrow = np.array((x_offset_total/3., y_left_max+y_offset_total/2.))
     stop_arrow = start_arrow + np.array((x_offset_total, y_offset_total))/4.
-    ax.annotate(z_label, xy=start_arrow, xytext=stop_arrow, 
+    ax.annotate(z_label, xy=start_arrow, xytext=stop_arrow,
                 arrowprops=arrowprops)
     if z_final is not None:
         xt = x_offset_total

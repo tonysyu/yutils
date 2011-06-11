@@ -7,7 +7,7 @@ from yutils.scaling import loglog
 def slope_marker(origin, slope, size_frac=0.1, pad_frac=0.1, ax=None,
                  invert=False):
     """Plot triangular slope marker labeled with slope.
-    
+
     Parameters
     ----------
     origin : (x, y)
@@ -18,7 +18,7 @@ def slope_marker(origin, slope, size_frac=0.1, pad_frac=0.1, ax=None,
         the fraction of the xaxis length used to determine the size of the slope
         marker. Should be less than 1.
     pad_frac : float
-        the fraction of the slope marker used to pad text labels. Should be less 
+        the fraction of the slope marker used to pad text labels. Should be less
         than 1.
     invert : bool
         Normally, the slope marker is below a line for positive slopes and above
@@ -26,18 +26,18 @@ def slope_marker(origin, slope, size_frac=0.1, pad_frac=0.1, ax=None,
     """
     if ax is None:
         ax = plt.gca()
-        
+
     if np.iterable(slope):
         rise, run = slope
         slope = float(rise) / run
     else:
         rise = run = None
-    
+
     x0, y0 = origin
     xlim = ax.get_xlim()
     dx_linear = size_frac * (xlim[1] - xlim[0])
     dx_decades = size_frac * (np.log10(xlim[1]) - np.log10(xlim[0]))
-    
+
     if invert:
         dx_linear = -dx_linear
         dx_decades = -dx_decades
@@ -51,7 +51,7 @@ def slope_marker(origin, slope, size_frac=0.1, pad_frac=0.1, ax=None,
         dx = dx_linear
         x_run = _text_position(x0, dx/2.)
         x_rise = _text_position(x0+dx, pad_frac * dx)
-    
+
     if ax.get_yscale() == 'log':
         log_size = dx_decades * slope
         dy = _log_distance(y0, log_size)
@@ -61,7 +61,7 @@ def slope_marker(origin, slope, size_frac=0.1, pad_frac=0.1, ax=None,
         dy = dx_linear * slope
         y_run = _text_position(y0, -(pad_frac * dy))
         y_rise = _text_position(y0, dy/2.)
-        
+
     x_pad = pad_frac * dx
     y_pad = pad_frac * dy
 
@@ -72,7 +72,7 @@ def slope_marker(origin, slope, size_frac=0.1, pad_frac=0.1, ax=None,
         ax.text(x_rise, y_rise, str(rise), ha=ha, va='center')
     else:
         ax.text(x_rise, y_rise, str(slope), ha=ha, va='center')
-    
+
     ax.add_patch(_slope_triangle(origin, dx, dy))
 
 def _log_distance(x0, dx_decades):
@@ -103,20 +103,20 @@ def _slope_triangle(origin, dx, dy, ec='none', fc='0.8', **poly_kwargs):
 if __name__ == '__main__':
     plt.plot([0, 2], [0, 1])
     slope_marker((1, 0.4), (1, 2))
-    
+
     x = np.logspace(0, 2)
     fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2)
-    
+
     ax1.loglog(x, x**0.5)
     slope_marker((10, 2), (1, 2), ax=ax1)
-    
+
     ax2.loglog(x, x**-0.5)
     slope_marker((10, .4), (-1, 2), ax=ax2)
-    
+
     ax3.loglog(x, x**0.5)
     slope_marker((10, 4), (1, 2), invert=True, ax=ax3)
-    
+
     ax4.loglog(x, x**0.5)
     slope_marker((10, 2), 0.5, ax=ax4)
-    
+
     plt.show()
