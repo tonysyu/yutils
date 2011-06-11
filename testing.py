@@ -18,9 +18,9 @@ def profile(cmd, numstats=20):
 
 class temporary_file(object):
     """Context manager for testing functions that expect file names.
-    
+
     Note that a file name (not the file object) is returned.
-    
+
     Parameters
     ----------
     file_text : str
@@ -28,14 +28,14 @@ class temporary_file(object):
     mode : {'r'|'a'}
         If in reading mode, 'r', file is rewound to beginning for reading.
         If in append mode, 'a', file is left of `file_text`.
-    
+
     Example
     -------
     >>> with temporary_file('hello world') as fname:
     ...     f = open(fname)
     ...     print f.read()
     hello world
-    
+
     """
     def __init__(self, file_text='', mode='r'):
         self.temp = tempfile.NamedTemporaryFile()
@@ -43,7 +43,7 @@ class temporary_file(object):
         assert mode in ('r', 'a')
         if mode == 'r':
             self.temp.seek(0) # rewind to start of the file for reading
-    
+
     def __enter__(self):
         return self.temp.name
 

@@ -20,7 +20,7 @@ def get_hg_revision(*args, **kwargs):
 
 def where1d(array):
     """Return indices where input array is True.
-    
+
     Instead of returning a tuple of indices for each dimension (which is what
     `numpy.where` does), return a single array of indices.
     """
@@ -31,7 +31,7 @@ def where1d(array):
 
 def iflatten(seq):
     """Iterate over sequence flattened by one level of nesting.
-    
+
     Example
     -------
     >>> list(iflatten([1, 2, 3]))
@@ -53,11 +53,11 @@ def iflatten(seq):
 
 def interlace(*args):
     """Return array with input array values interlaced.
-    
+
     Any number of input arrays greater than 1 is accepted. All input arrays
     must have the same length. The returned interlaced array has a length equal
     to the sum of the lengths of all input arrays.
-    
+
     For example,
     >>> x = [1, 3, 5, 7]
     >>> y = [2, 4, 6, 8]
@@ -70,7 +70,7 @@ def interlace(*args):
 
 def iterstep(iterator, n):
     """Yield every `n`th value of given `iterator`.
-    
+
     Example
     -------
     >>> (n for n in range(10))
@@ -89,7 +89,7 @@ def iterstep(iterator, n):
 
 def attr_values(cls, attrs, sep=' = ', pre='\t', post='\n'):
     """Return string with names and values of attributes.
-    
+
     Parameters
     ----------
     cls : object
@@ -102,7 +102,7 @@ def attr_values(cls, attrs, sep=' = ', pre='\t', post='\n'):
     post : str
         postfix to attribute name, value pairs. Note, this string is used to
         join the pairs and thus, will not be added as a postfix to last pair.
-    
+
     Example
     -------
     >>> class Dummy:
@@ -118,7 +118,7 @@ def attr_values(cls, attrs, sep=' = ', pre='\t', post='\n'):
 
 def permutation_iter(adict):
     """Generator function which returns permutations of dict values
-    
+
     Example
     -------
     >>> adict = dict(a=(1, 2), b=(3, 4))
@@ -128,10 +128,10 @@ def permutation_iter(adict):
     {'a': 2, 'b': 3}
     {'a': 1, 'b': 4}
     {'a': 2, 'b': 4}
-    
+
     The permutation order above is not guaranteed. Also note that if you want
     the actual dict value to be a sequence, it should be nested:
-    
+
     >>> adict = dict(a=(1, 2), b=((3, 4),))
     >>> for d in permutation_iter(adict):
     ...     print d
@@ -145,7 +145,7 @@ def permutation_iter(adict):
 
 def slice_from_string(s):
     """Return a python slice object for a string that "looks" like a slice.
-    
+
     Example
     -------
     >>> slice_from_string(':')
@@ -172,7 +172,7 @@ def slice_from_string(s):
 
 def arg_nearest(arr, value, atol=None, rtol=None):
     """Return index of array with value nearest the specified value.
-    
+
     Parameters
     ----------
     arr : numpy array
@@ -181,7 +181,7 @@ def arg_nearest(arr, value, atol=None, rtol=None):
     atol, rtol : float
         If specified, assert that value in `arr` atleast as close to `value` as
         given tolerance. `atol` and `rtol`
-    
+
     Example
     -------
     >>> a = np.array([1, 2, 3, 4, 5])
@@ -209,5 +209,5 @@ def arg_nearest(arr, value, atol=None, rtol=None):
 
 if __name__ == '__main__':
     import doctest
-    
+
     doctest.testmod()

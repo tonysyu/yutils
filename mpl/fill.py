@@ -6,12 +6,12 @@ from matplotlib import colors
 
 def nonuniform_imshow(x, y, z, ax=None, **kwargs):
     """Plot image with nonuniform pixel spacing.
-    
+
     This function is a convenience method for calling image.NonUniformImage.
     """
     if ax is None:
         ax = plt.gca()
-    norm = colors.Normalize(vmin=kwargs.pop('vmin', None), 
+    norm = colors.Normalize(vmin=kwargs.pop('vmin', None),
                             vmax=kwargs.pop('vmax', None))
     im = NonUniformImage(ax, interpolation='bilinear', norm=norm, **kwargs)
     im.set_data(x, y, z)
@@ -21,11 +21,11 @@ def nonuniform_imshow(x, y, z, ax=None, **kwargs):
 
 def plot(x, y=None, c=0.5, edgecolor='k', ax=None, cmap=plt.cm.gray, **kwargs):
     """Plot curve filled with fill that can vary in the x-direction.
-    
+
     This plot function differs from `matplotlib.pyplot.fill` because it allows
     variation in the color. In addition, only the curve itself is given an edge;
     i.e., the left, right, and bottom edges are not marked.
-    
+
     Parameters
     ----------
     x, y : arrays

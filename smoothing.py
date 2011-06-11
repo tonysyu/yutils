@@ -4,7 +4,7 @@ from scipy import interpolate
 
 class Spline(object):
     """Interpolating spline for calculating derivatives.
-    
+
     Parameters
     ----------
     x, y : array
@@ -14,19 +14,19 @@ class Spline(object):
     def __init__(self, x, y, s=None):
         self.x = x
         self._tck = interpolate.splrep(x, y, s=s)
-    
+
     def __call__(self, x):
         return interpolate.splev(x, self._tck, 0)
-    
+
     def deriv(self, d, x=None):
         """Return derivative of spline of order `d` at specified `x`."""
         if x is None:
             x = self.x
         return interpolate.splev(x, self._tck, d)
-    
+
     def maxima(self, der=0):
         """Return local maxima of spline.
-        
+
         Returns
         -------
         crests, troughs : bool arrays
