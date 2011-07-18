@@ -21,7 +21,7 @@ def match_glob(pattern, path='.'):
 
 
 def join_to_filepath(filepath, relpath):
-    """Return absolute path from filepath and relative path.
+    """Return path from filepath and relative path.
 
     The function is useful for appending a path relative to the main file.
     In this case, you would call:
@@ -47,10 +47,11 @@ def add_to_python_path(path, relative_to=None):
 
 
 def test_join_to_filepath():
-    path = join_to_filepath(__file__, 'relative/path/')
-    assert path == '/Users/Tony/python/yutils/relative/path/'
+    path = join_to_filepath('path/to/file.ext', 'relative/path/')
+    assert path == 'path/to/relative/path/'
 
 
 if __name__ == '__main__':
     import nose
     nose.runmodule()
+
