@@ -207,6 +207,75 @@ def arg_nearest(arr, value, atol=None, rtol=None):
     return idx
 
 
+class ArrayWindow(list):
+    """Slicing object for numpy ndarrays.
+
+    ArrayWindow indexes numpy arrays over multiple dimensions.
+
+    Parameters
+    ----------
+    *index_ranges : tuples
+        (start, stop[, step) tuples for each dimension
+
+    Example
+    -------
+    >>> a = np.arange(9)
+    >>> w = ArrayWindow((3, 5))
+    >>> a[w]
+    array([3, 4])
+    >>> a[w + 1]
+    array([4, 5])
+    >>> a[w - 1]
+    array([2, 3])
+
+    >>> a = np.array([[0, 0, 0, 0],
+    ...               [0, 1, 1, 0],
+    ...               [0, 1, 1, 0],
+    ...               [0, 0, 0, 0]])
+    >>> w = ArrayWindow((1, 3), (1, 3))
+    >>> # centered window
+    >>> a[w]
+    array([[1, 1],
+           [1, 1]])
+    >>> # shift both row an column by 1 (i.e. move down and to the right)
+    >>> a[w + 1]
+    array([[1, 0],
+           [0, 0]])
+    >>> # shift down
+    >>> a[w + (1, 0)]
+    array([[1, 1],
+           [0, 0]])
+    >>> # shift left
+    >>> a[w - (0, 1)]
+    array([[0, 1],
+           [0, 1]])
+    """
+    def __init__(self, *args):
+        self.slices = []
+        for i_range in args:
+            self.slices.append(slice(*i_range))
+        super(ArrayWindow, self).__init__(self.slices)
+
+    def __add__(self, val):
+        if isinstance(val, int):
+            index_ranges = []
+            for s in self:
+                index_ranges.append((s.start + val, s.stop + val, s.step))
+            return ArrayWindow(*index_ranges)
+        elif isinstance(val, tuple):
+            index_ranges = []
+            for s, v in zip(self, val):
+                index_ranges.append((s.start + v, s.stop + v, s.step))
+            return ArrayWindow(*index_ranges)
+
+    def __sub__(self, val):
+        if isinstance(val, int):
+            return self + (-val)
+        elif isinstance(val, tuple):
+            valx = tuple(-v for v in val)
+            return self + valx
+
+
 if __name__ == '__main__':
     import doctest
 
