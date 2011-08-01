@@ -73,7 +73,7 @@ def iterstep(iterator, n):
 
     Example
     -------
-    >>> (n for n in range(10))
+    >>> count = (n for n in range(10))
     >>> for n in iterstep(count, 3):
     ...     print n
     0
@@ -211,3 +211,4 @@ if __name__ == '__main__':
     import doctest
 
     doctest.testmod()
+
