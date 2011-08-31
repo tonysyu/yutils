@@ -6,6 +6,12 @@ import sys
 import glob
 
 
+def hasext(filename):
+    """Return True if filename has a file extension"""
+    path, ext = os.path.splitext(filename)
+    return len(ext) > 0
+
+
 def match_glob(pattern, path='.'):
     """Yield all files matching given glob pattern
 
@@ -125,6 +131,11 @@ def add_to_python_path(path, relative_to=None):
     return sys.path.append(path)
 
 
+def test_hasext():
+    assert hasext('/a/b/c.txt')
+    assert not hasext('/a/b/c')
+
+
 def test_join_to_filepath():
     path = join_to_filepath('path/to/file.ext', 'relative/path/')
     assert path == 'path/to/relative/path/'
@@ -139,3 +150,4 @@ def test_add_unique_postix():
 if __name__ == '__main__':
     import nose
     nose.runmodule()
+
