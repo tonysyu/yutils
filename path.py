@@ -4,6 +4,7 @@ Path related helper functions.
 import os
 import sys
 import glob
+import warnings
 
 
 def hasext(filename):
@@ -63,7 +64,7 @@ def mkdir(path, conflict='rename', rename_fmt='%s_%i', mode=0777):
     ----------
     path : str
         path of new directory
-    conflict : {'rename', 'overwrite', 'error'}
+    conflict : {'rename', 'warn', 'overwrite', 'error'}
         specify behavior when supplied path conflicts with existing path
     rename_fmt : str
         format string taking
@@ -88,11 +89,15 @@ def mkdir(path, conflict='rename', rename_fmt='%s_%i', mode=0777):
     Returns
     -------
     path : str
-        path of new directory. If
+        path of new directory. This may not match input path if `conflict` set
+        to 'rename'.
     """
     if os.path.exists(path):
         if conflict == 'error':
             raise OSError("Directory exists: %s" % path)
+        elif conflict == 'warn':
+            warnings.warn("Directory exists: %s" % path)
+            return path
         elif conflict == 'overwrite':
             print "Overwriting existing directory: %s" % path
             os.rmdir(path)
@@ -100,6 +105,8 @@ def mkdir(path, conflict='rename', rename_fmt='%s_%i', mode=0777):
             print "Directory exists: %s" % path
             path = add_unique_postfix(path)
             print "Create new directory: %s" % path
+        else:
+            raise ValueError("Unrecognized value for conflict: %s" % conflict)
 
     os.mkdir(path, mode)
     return path
