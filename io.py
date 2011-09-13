@@ -2,6 +2,24 @@
 Data input/output helper functions.
 """
 from __future__ import with_statement
+import numpy as np
+
+
+def save_array_list(fname, plocs):
+    """Save list of arrays to an npz file."""
+    # cast integer indexes to strings because numpy.savez requires string keys
+    save_data = dict((str(i), a) for i, a in enumerate(plocs))
+    np.savez(fname, **save_data)
+
+
+def load_array_list(fname):
+    """Load list of arrays from an npz file.
+
+    This function assumes npz file specified by `fname` has been created by
+    `save_array_list`.
+    """
+    data = np.load(fname)
+    return [data[str(i)] for i in xrange(len(data.files))]
 
 
 def read_debug_data(datafile, varnames, postfix=' = ', init=None, noisy=False):
