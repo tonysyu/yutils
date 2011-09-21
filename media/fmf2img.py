@@ -44,6 +44,31 @@ class DummyProgressBar(object):
     def finish(self): pass
 
 
+def rgb_convert(fmf_format, frame):
+    save_frame = imops.to_rgb8(fmf_format, frame)
+    h, w = save_frame.shape[:2]
+    im = Image.fromstring('RGB', (w,h), save_frame.tostring())
+    return im
+
+
+def mono_convert(fmf_format, frame):
+    save_frame = imops.to_mono8(fmf_format, frame)
+    h, w = save_frame.shape[:2]
+    im = Image.fromstring('L', (w,h), save_frame.tostring())
+    return im
+
+
+def is_mono(fmf_format):
+    if (fmf_format in ['RGB8','ARGB8','YUV411','YUV422'] or
+        fmf_format.startswith('MONO8:') or fmf_format.startswith('MONO32f:')):
+        return False
+    else:
+        if fmf_format not in ['MONO8','MONO16']:
+            msg = 'converting unknown fmf format %s to mono' % fmf_format
+            warnings.warn(msg)
+        return True
+
+
 def main():
     parser = get_parser()
     args = parser.parse_args()
@@ -75,6 +100,11 @@ def main():
     if endframe < 0 or endframe >= n_frames:
         endframe = n_frames - 1
 
+    if is_mono(fmf_format):
+        convert = mono_convert
+    else:
+        convert = rgb_convert
+
     fly_movie.seek(startframe)
     frames = range(startframe, endframe+1, interval)
     n_frames = len(frames)
@@ -87,28 +117,12 @@ def main():
 
     for count,frame_number in enumerate(frames):
         pbar.update(count)
-        frame,timestamp = fly_movie.get_frame(frame_number)
-
-        mono=False
-        if (fmf_format in ['RGB8','ARGB8','YUV411','YUV422'] or
-            fmf_format.startswith('MONO8:') or
-            fmf_format.startswith('MONO32f:')):
-            save_frame = imops.to_rgb8(fmf_format, frame)
-        else:
-            if fmf_format not in ['MONO8','MONO16']:
-                msg = 'converting unknown fmf format %s to mono' % fmf_format
-                warnings.warn(msg)
-            save_frame = imops.to_mono8(fmf_format, frame)
-            mono=True
-
-        h,w=save_frame.shape[:2]
-        if mono:
-            im = Image.fromstring('L', (w,h), save_frame.tostring())
-        else:
-            im = Image.fromstring('RGB', (w,h), save_frame.tostring())
 
         basename = os.path.join(outdir, base)
         f = '%s_%08d.%s'%(basename, frame_number, imgformat)
+
+        frame, timestamp = fly_movie.get_frame(frame_number)
+        im = convert(fmf_format, frame)
         im.save(f)
 
     pbar.finish()
