@@ -91,11 +91,7 @@ def main():
     if args.prefix is not None:
         base = args.prefix
 
-    if args.outdir is None:
-        outdir = path
-    else:
-        outdir = args.outdir
-    outdir = yutils.path.mkdir(outdir)
+    outdir = yutils.path.mkdir(args.outdir)
 
     fly_movie = FlyMovieFormat.FlyMovie(filename)
     fmf_format = fly_movie.get_format()
