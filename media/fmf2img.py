@@ -29,6 +29,21 @@ def get_parser():
     return parser
 
 
+def get_progressbar(n_frames):
+    import progressbar
+    widgets = ['fmf2img ', progressbar.Percentage(), ' ',
+               progressbar.Bar(), ' ', progressbar.ETA()]
+    pbar = progressbar.ProgressBar(widgets=widgets, maxval=n_frames)
+    return pbar
+
+
+class DummyProgressBar(object):
+    def __init__(self): pass
+    def start(self): pass
+    def update(self, *args): pass
+    def finish(self): pass
+
+
 def main():
     parser = get_parser()
     args = parser.parse_args()
@@ -63,18 +78,15 @@ def main():
     fly_movie.seek(startframe)
     frames = range(startframe, endframe+1, interval)
     n_frames = len(frames)
+
     if args.progress:
-        import progressbar
-        widgets = ['fmf2img ', progressbar.Percentage(), ' ',
-                   progressbar.Bar(), ' ', progressbar.ETA()]
-        pbar = progressbar.ProgressBar(widgets=widgets, maxval=n_frames)
-        pbar.start()
+        pbar = get_progressbar(n_frames)
     else:
-        pbar = None
+        pbar = DummyProgressBar()
+    pbar.start()
 
     for count,frame_number in enumerate(frames):
-        if pbar is not None:
-            pbar.update(count)
+        pbar.update(count)
         frame,timestamp = fly_movie.get_frame(frame_number)
 
         mono=False
@@ -99,8 +111,7 @@ def main():
         f = '%s_%08d.%s'%(basename, frame_number, imgformat)
         im.save(f)
 
-    if pbar is not None:
-        pbar.finish()
+    pbar.finish()
     print "%s images saved to %s" % (frame_number + 1, outdir)
 
 
