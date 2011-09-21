@@ -2,36 +2,33 @@
 import os, sys
 from motmot.FlyMovieFormat import FlyMovieFormat
 import Image
-from optparse import OptionParser
+from argparse import ArgumentParser
 import motmot.imops.imops as imops
 import warnings
 
 def main():
 
-    parser = OptionParser()
-    parser.add_option('--start',type='int',default=0,help='first frame to save')
-    parser.add_option('--stop',type='int',default=-1,help='last frame to save')
-    parser.add_option('--interval',type='int',default=1,help='save every Nth frame')
-    parser.add_option('--extension',type='string',default='bmp',
+    parser = ArgumentParser()
+    parser.add_argument('fmf_file', type=str)
+    parser.add_argument('--start',type=int,default=0,help='first frame to save')
+    parser.add_argument('--stop',type=int,default=-1,help='last frame to save')
+    parser.add_argument('--interval',type=int,default=1,help='save every Nth frame')
+    parser.add_argument('--extension',type=str,default='bmp',
                       help='image extension (default: bmp)')
-    parser.add_option('--outdir',type='string',default=None,
+    parser.add_argument('--outdir',type=str,default=None,
                       help='directory to save images (default: same as fmf)')
-    parser.add_option('--progress',action='store_true',default=False,
+    parser.add_argument('--progress',action='store_true',default=False,
                       help='show progress bar')
-    parser.add_option('--prefix',default=None,type='str',
+    parser.add_argument('--prefix',default=None,type=str,
                       help='prefix for image filenames')
-    (options, args) = parser.parse_args()
+    args = parser.parse_args()
 
-    if len(args)<1:
-        parser.print_help()
-        return
-
-    filename = args[0]
-    startframe = options.start
-    endframe = options.stop
-    interval = options.interval
+    filename = args.fmf_file
+    startframe = args.start
+    endframe = args.stop
+    interval = args.interval
     assert interval >= 1
-    imgformat = options.extension
+    imgformat = args.extension
 
     base,ext = os.path.splitext(filename)
     if ext != '.fmf':
@@ -39,13 +36,13 @@ def main():
         sys.exit()
 
     path,base = os.path.split(base)
-    if options.prefix is not None:
-        base = options.prefix
+    if args.prefix is not None:
+        base = args.prefix
 
-    if options.outdir is None:
+    if args.outdir is None:
         outdir = path
     else:
-        outdir = options.outdir
+        outdir = args.outdir
 
     fly_movie = FlyMovieFormat.FlyMovie(filename)
     fmf_format = fly_movie.get_format()
@@ -56,7 +53,7 @@ def main():
     fly_movie.seek(startframe)
     frames = range(startframe,endframe+1,interval)
     n_frames = len(frames)
-    if options.progress:
+    if args.progress:
         import progressbar
         widgets=['fmf2bmps', progressbar.Percentage(), ' ',
                  progressbar.Bar(), ' ', progressbar.ETA()]
