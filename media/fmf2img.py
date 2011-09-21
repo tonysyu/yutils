@@ -3,6 +3,7 @@ import os
 import sys
 import warnings
 from argparse import ArgumentParser
+import numpy as np
 import Image
 
 from motmot.FlyMovieFormat import FlyMovieFormat
@@ -113,6 +114,7 @@ def main():
         pbar = DummyProgressBar()
     pbar.start()
 
+    times = []
     for count, frame_number in enumerate(frames):
         pbar.update(count)
 
@@ -122,7 +124,9 @@ def main():
         frame, timestamp = fly_movie.get_frame(frame_number)
         im = convert(fmf_format, frame)
         im.save(f)
+        times.append(timestamp)
 
+    np.save(os.path.join(outdir, 'timestamps'), times)
     pbar.finish()
     print "%s images saved to %s" % (frame_number + 1, outdir)
 
