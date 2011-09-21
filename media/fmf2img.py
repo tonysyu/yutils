@@ -18,10 +18,10 @@ def get_parser():
                         help='last frame to save')
     parser.add_argument('--interval', type=int, default=1,
                         help='save every Nth frame')
-    parser.add_argument('--extension', type=str, default='bmp',
-                        help='image extension (default: bmp)')
-    parser.add_argument('--outdir', type=str, default=None,
-                        help='directory to save images (default: same as fmf)')
+    parser.add_argument('--extension', type=str, default='jpg',
+                        help='image extension (default: jpg)')
+    parser.add_argument('--outdir', type=str, default='fmf2img',
+                        help='directory to save images (default: fmf2img)')
     parser.add_argument('--progress', action='store_true', default=False,
                         help='show progress bar')
     parser.add_argument('--prefix', default=None, type=str,
@@ -115,7 +115,7 @@ def main():
         pbar = DummyProgressBar()
     pbar.start()
 
-    for count,frame_number in enumerate(frames):
+    for count, frame_number in enumerate(frames):
         pbar.update(count)
 
         basename = os.path.join(outdir, base)
