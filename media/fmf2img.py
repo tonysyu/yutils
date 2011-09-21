@@ -29,11 +29,11 @@ def get_parser():
     return parser
 
 
-def get_progressbar(n_frames):
+def get_progressbar(length):
     import progressbar
     widgets = ['fmf2img ', progressbar.Percentage(), ' ',
                progressbar.Bar(), ' ', progressbar.ETA()]
-    pbar = progressbar.ProgressBar(widgets=widgets, maxval=n_frames)
+    pbar = progressbar.ProgressBar(widgets=widgets, maxval=length)
     return pbar
 
 
@@ -107,10 +107,9 @@ def main():
 
     fly_movie.seek(startframe)
     frames = range(startframe, endframe+1, interval)
-    n_frames = len(frames)
 
     if args.progress:
-        pbar = get_progressbar(n_frames)
+        pbar = get_progressbar(len(frames))
     else:
         pbar = DummyProgressBar()
     pbar.start()
