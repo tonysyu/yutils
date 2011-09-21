@@ -8,6 +8,8 @@ import Image
 from motmot.FlyMovieFormat import FlyMovieFormat
 import motmot.imops.imops as imops
 
+import yutils.path
+
 
 def get_parser():
     parser = ArgumentParser()
@@ -80,12 +82,12 @@ def main():
     interval = args.interval
     assert interval >= 1
 
-    base,ext = os.path.splitext(filename)
-    if ext != '.fmf':
+    base, ext = os.path.splitext(filename)
+    if not ext == '.fmf':
         print 'fmf_filename does not end in .fmf'
         sys.exit()
 
-    path,base = os.path.split(base)
+    path, base = os.path.split(base)
     if args.prefix is not None:
         base = args.prefix
 
@@ -93,6 +95,7 @@ def main():
         outdir = path
     else:
         outdir = args.outdir
+    outdir = yutils.path.mkdir(outdir)
 
     fly_movie = FlyMovieFormat.FlyMovie(filename)
     fmf_format = fly_movie.get_format()
