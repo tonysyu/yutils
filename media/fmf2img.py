@@ -13,7 +13,7 @@ import yutils.path
 
 
 def get_parser():
-    parser = ArgumentParser()
+    parser = ArgumentParser(description="Tool to convert fmf movie to images")
     parser.add_argument('fmf_file', type=str)
     parser.add_argument('--start', type=int, default=0,
                         help='first frame to save')
@@ -82,6 +82,7 @@ def main():
     endframe = args.stop
     interval = args.interval
     assert interval >= 1
+    outdir = yutils.path.mkdir(args.outdir)
 
     base, ext = os.path.splitext(filename)
     if not ext == '.fmf':
@@ -91,8 +92,7 @@ def main():
     path, base = os.path.split(base)
     if args.prefix is not None:
         base = args.prefix
-
-    outdir = yutils.path.mkdir(args.outdir)
+    basename = os.path.join(outdir, base)
 
     fly_movie = FlyMovieFormat.FlyMovie(filename)
     fmf_format = fly_movie.get_format()
@@ -116,15 +116,13 @@ def main():
 
     times = []
     for count, frame_number in enumerate(frames):
-        pbar.update(count)
-
-        basename = os.path.join(outdir, base)
         f = '%s_%08d.%s'%(basename, frame_number, imgformat)
-
         frame, timestamp = fly_movie.get_frame(frame_number)
         im = convert(fmf_format, frame)
         im.save(f)
+
         times.append(timestamp)
+        pbar.update(count)
 
     np.save(os.path.join(outdir, 'timestamps'), times)
     pbar.finish()
