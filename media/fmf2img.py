@@ -107,7 +107,6 @@ def main():
     else:
         convert = rgb_convert
 
-    fly_movie.seek(startframe)
     frames = range(startframe, endframe+1, interval)
 
     if args.progress:
