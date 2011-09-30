@@ -128,7 +128,7 @@ def main():
 
     np.save(os.path.join(outdir, 'timestamps'), times)
     pbar.finish()
-    print "%s images saved to %s" % (frame_number + 1, outdir)
+    print "%s images saved to %s" % (len(frames), outdir)
 
 
 if __name__=='__main__':
