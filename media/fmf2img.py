@@ -28,7 +28,7 @@ def get_parser():
                               '(defaults to name of fmf file)'))
     parser.add_argument('--progress', action='store_true', default=False,
                         help='show progress bar')
-    parser.add_argument('--prefix', default=None, type=str,
+    parser.add_argument('--prefix', default='img', type=str,
                         help='prefix for image filenames')
     return parser
 
@@ -89,13 +89,12 @@ def main():
         print 'fmf_filename does not end in .fmf'
         sys.exit()
 
-    path, base = os.path.split(base)
     if args.outdir is None:
-        args.outdir = base
+        path, savedir = os.path.split(base)
+        args.outdir = savedir
     outdir = yutils.path.mkdir(args.outdir)
-    if args.prefix is not None:
-        base = args.prefix
-    basename = os.path.join(outdir, base)
+
+    basename = os.path.join(outdir, args.prefix)
 
     fly_movie = FlyMovieFormat.FlyMovie(filename)
     fmf_format = fly_movie.get_format()
