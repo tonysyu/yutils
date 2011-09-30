@@ -23,8 +23,9 @@ def get_parser():
                         help='save every Nth frame')
     parser.add_argument('--extension', type=str, default='jpg',
                         help='image extension (default: jpg)')
-    parser.add_argument('--outdir', type=str, default='fmf2img',
-                        help='directory to save images (default: fmf2img)')
+    parser.add_argument('--outdir', type=str, default=None,
+                        help=('directory to save images '
+                              '(defaults to name of fmf file)'))
     parser.add_argument('--progress', action='store_true', default=False,
                         help='show progress bar')
     parser.add_argument('--prefix', default=None, type=str,
@@ -82,7 +83,6 @@ def main():
     endframe = args.stop
     interval = args.interval
     assert interval >= 1
-    outdir = yutils.path.mkdir(args.outdir)
 
     base, ext = os.path.splitext(filename)
     if not ext == '.fmf':
@@ -90,6 +90,9 @@ def main():
         sys.exit()
 
     path, base = os.path.split(base)
+    if args.outdir is None:
+        args.outdir = base
+    outdir = yutils.path.mkdir(args.outdir)
     if args.prefix is not None:
         base = args.prefix
     basename = os.path.join(outdir, base)
