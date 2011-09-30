@@ -119,7 +119,8 @@ def main():
         f = '%s_%08d.%s'%(basename, frame_number, imgformat)
         frame, timestamp = fly_movie.get_frame(frame_number)
         im = convert(fmf_format, frame)
-        im.save(f)
+        # Note, quality is only supported by JPEG image
+        im.save(f, quality=90)
 
         times.append(timestamp)
         pbar.update(count)
