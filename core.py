@@ -18,6 +18,34 @@ def get_hg_revision(*args, **kwargs):
     raise DeprecationWarning(msg)
 
 
+def pad_zeros(maxint):
+    """Return zero-padded format string for the given maximum integer
+
+    Example
+    -------
+    >>> fmt = pad_zeros(192)
+    >>> fmt % 1
+    '001'
+    """
+    int_length = len(str(maxint))
+    return '%%0%ii' % int_length
+
+
+def numbered_file_format(maxint):
+    """Return format string for a sequence of files
+
+    Format string expects 3 inputs: the base name of the file (including path),
+    a number, and the extension. The format string has the form '%s_%0#i.%s'.
+
+    Example
+    -------
+    >>> fmt = numbered_file_format(3323)
+    >>> fmt % ('a/b/c', 32, 'txt')
+    'a/b/c_0032.txt'
+    """
+    return '%%s_%s.%%s' % pad_zeros(maxint)
+
+
 def where1d(array):
     """Return indices where input array is True.
 

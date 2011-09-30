@@ -116,8 +116,9 @@ def main():
     pbar.start()
 
     times = []
+    img_fmt = yutils.numbered_file_format(len(frames))
     for count, frame_number in enumerate(frames):
-        f = '%s_%08d.%s'%(basename, frame_number, imgformat)
+        f = img_fmt % (basename, frame_number, imgformat)
         frame, timestamp = fly_movie.get_frame(frame_number)
         im = convert(fmf_format, frame)
         # Note, quality is only supported by JPEG image
