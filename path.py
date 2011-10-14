@@ -4,6 +4,7 @@ Path related helper functions.
 import os
 import sys
 import glob
+import shutil
 import warnings
 
 
@@ -102,7 +103,7 @@ def mkdir(path, conflict='rename', rename_fmt='%s_%i', mode=0777):
             return path
         elif conflict == 'overwrite':
             print "Overwriting existing directory: %s" % path
-            os.rmdir(path)
+            shutil.rmtree(path)
         elif conflict == 'rename':
             print "Directory exists: %s" % path
             path = add_unique_postfix(path)
@@ -159,4 +160,6 @@ def test_add_unique_postix():
 if __name__ == '__main__':
     import nose
     nose.runmodule()
+
+
 
