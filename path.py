@@ -58,6 +58,7 @@ def add_unique_postfix(path):
         raise OSError(msg % sys.maxint)
 
 
+_conflict_choices = {'o': 'overwrite', 'r': 'rename', 'i': 'ignore'}
 def mkdir(path, conflict='rename', rename_fmt='%s_%i', mode=0777):
     """Create directory at specified path.
 
@@ -65,8 +66,11 @@ def mkdir(path, conflict='rename', rename_fmt='%s_%i', mode=0777):
     ----------
     path : str
         path of new directory
-    conflict : {'rename', 'warn', 'overwrite', 'error'}
-        specify behavior when supplied path conflicts with existing path
+    conflict : {'query', 'ignore', 'rename', 'warn', 'overwrite', 'error'}
+        specify behavior when supplied path conflicts with existing path. If
+        set to 'query', the user is asked to choose what to do. Note, 'ignore'
+        differs from 'overwrite' because 'overwrite' removes the directory
+        and creates a new one.
     rename_fmt : str
         format string taking
     mode : octal
@@ -94,6 +98,16 @@ def mkdir(path, conflict='rename', rename_fmt='%s_%i', mode=0777):
         to 'rename'.
     """
     if os.path.exists(path):
+
+        if conflict == 'query':
+            print "Directory exists: %s" % path
+            choice = raw_input("Overwrite, rename, ignore, or quit (o/r/i/q)? ")
+            if choice not in _conflict_choices:
+                if not choice == 'q':
+                    print "Unrecognized command '%s'" % choice
+                sys.exit()
+            conflict = _conflict_choices[choice]
+
         if conflict == 'error':
             raise OSError("Directory exists: %s" % path)
         elif conflict == 'warn':
@@ -160,6 +174,4 @@ def test_add_unique_postix():
 if __name__ == '__main__':
     import nose
     nose.runmodule()
-
-
 
