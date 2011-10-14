@@ -98,6 +98,8 @@ def mkdir(path, conflict='rename', rename_fmt='%s_%i', mode=0777):
         elif conflict == 'warn':
             warnings.warn("Directory exists: %s" % path)
             return path
+        elif conflict == 'ignore':
+            return path
         elif conflict == 'overwrite':
             print "Overwriting existing directory: %s" % path
             os.rmdir(path)
