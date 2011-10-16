@@ -7,9 +7,11 @@ __all__ = ['MeasureLengthTool']
 class MeasureLengthTool(object):
     def __init__(self, ax, color='k'):
         fig = ax.figure
-        fig.canvas.mpl_connect('button_press_event', self.onpress)
-        fig.canvas.mpl_connect('button_release_event', self.onrelease)
-        fig.canvas.mpl_connect('motion_notify_event', self.onmove)
+        connect = fig.canvas.mpl_connect
+        self.cids = []
+        self.cids.append(connect('button_press_event', self.onpress))
+        self.cids.append(connect('button_release_event', self.onrelease))
+        self.cids.append(connect('motion_notify_event', self.onmove))
         self.fig = fig
         self.ax = ax
         self.line, = ax.plot((0, 0), (0, 0), color=color)
@@ -41,4 +43,8 @@ class MeasureLengthTool(object):
         self.line.set_data([self.x0, x1], [self.y0, y1])
         self.fig.canvas.draw()
 
+    def disconnect(self):
+        self.ax.lines.remove(self.line)
+        for c in self.cids:
+            self.fig.canvas.mpl_disconnect(c)
 
