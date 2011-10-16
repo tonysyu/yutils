@@ -23,37 +23,46 @@ THE SOFTWARE.
 
 version = '4'
 
-import numpy
-import pylab
+import numpy as np
+import matplotlib.pyplot as plt
 import matplotlib
 import matplotlib.patches as mpp
 
 def streamplot(x, y, u, v, density=1, linewidth=1,
                color='k', cmap=None, norm=None, vmax=None, vmin=None,
                arrowsize=1, INTEGRATOR='RK4'):
-    '''Draws streamlines of a vector flow.
+    """Draws streamlines of a vector flow.
 
-    * x and y are 1d arrays defining an *evenly spaced* grid.
-    * u and v are 2d arrays (shape [y,x]) giving velocities.
-    * density controls the closeness of the streamlines. For different
-      densities in each direction, use a tuple or list [densityx, densityy].
-    * linewidth is either a number (uniform lines) or a 2d array
-      (variable linewidth).
-    * color is either a color code (of any kind) or a 2d array. This is
-      then transformed into color by the cmap, norm, vmin and vmax args.
+    Parameters
+    ----------
+    x, y : 1d arrays
+        an *evenly spaced* grid.
+    u, v : 2d arrays
+        x and y-velocities. Number of rows should match length of y, and
+        the number of columns should match x.
+    density : numeric
+        controls the closeness of the streamlines. For different densities in
+        each direction, use a tuple or list [densityx, densityy].
+    linewidth : numeric or 2d array
+        vary linewidth when given a 2d array with the same shape as velocities.
+    color : matplotlib color code, or 2d array
+      then transformed into color by the 
       A value of None gives the default for each.
+        Streamline color. When given an array with the same shape as
+        velocities, values are converted to color using cmap, norm, vmin and
+        vmax args.
 
     INTEGRATOR is experimental. Currently, RK4 should be used.
-      '''
+    """
 
     ## Sanity checks.
     assert len(x.shape)==1
     assert len(y.shape)==1
     assert u.shape == (len(y), len(x))
     assert v.shape == (len(y), len(x))
-    if type(linewidth) == numpy.ndarray:
+    if type(linewidth) == np.ndarray:
         assert linewidth.shape == (len(y), len(x))
-    if type(color) == numpy.ndarray:
+    if type(color) == np.ndarray:
         assert color.shape == (len(y), len(x))
 
     ## Set up some constants - size of the grid used.
@@ -68,7 +77,7 @@ def streamplot(x, y, u, v, density=1, linewidth=1,
     ## Now rescale velocity onto axes-coordinates
     u = u / (x[-1]-x[0])
     v = v / (y[-1]-y[0])
-    speed = numpy.sqrt(u*u+v*v)
+    speed = np.sqrt(u*u+v*v)
     ## s (path length) will now be in axes-coordinates, but we must
     ## rescale u for integrations.
     u *= NGX
@@ -88,7 +97,7 @@ def streamplot(x, y, u, v, density=1, linewidth=1,
         assert len(density) > 0
         NBX = int(30*density[0])
         NBY = int(30*density[1])
-    blank = numpy.zeros((NBY,NBX))
+    blank = np.zeros((NBY,NBX))
 
     ## Constants for conversion between grid-index space and
     ## blank-index space
@@ -104,12 +113,12 @@ def streamplot(x, y, u, v, density=1, linewidth=1,
     def value_at(a, xi, yi):
         ## Linear interpolation - nice and quick because we are
         ## working in grid-index coordinates.
-        if type(xi) == numpy.ndarray:
-            x = xi.astype(numpy.int)
-            y = yi.astype(numpy.int)
+        if type(xi) == np.ndarray:
+            x = xi.astype(np.int)
+            y = yi.astype(np.int)
         else:
-            x = numpy.int(xi)
-            y = numpy.int(yi)
+            x = np.int(xi)
+            y = np.int(yi)
         a00 = a[y,x]
         a01 = a[y,x+1]
         a10 = a[y+1,x]
@@ -214,23 +223,35 @@ def streamplot(x, y, u, v, density=1, linewidth=1,
                                  yi + .25*ds*k1y)
                     k3x, k3y = f(xi + 3./32*ds*k1x + 9./32*ds*k2x,
                                  yi + 3./32*ds*k1y + 9./32*ds*k2y)
-                    k4x, k4y = f(xi + 1932./2197*ds*k1x - 7200./2197*ds*k2x + 7296./2197*ds*k3x,
-                                 yi + 1932./2197*ds*k1y - 7200./2197*ds*k2y + 7296./2197*ds*k3y)
-                    k5x, k5y = f(xi + 439./216*ds*k1x - 8*ds*k2x + 3680./513*ds*k3x - 845./4104*ds*k4x,
-                                 yi + 439./216*ds*k1y - 8*ds*k2y + 3680./513*ds*k3y - 845./4104*ds*k4y)
-                    k6x, k6y = f(xi - 8./27*ds*k1x + 2*ds*k2x - 3544./2565*ds*k3x + 1859./4104*ds*k4x - 11./40*ds*k5x,
-                                 yi - 8./27*ds*k1y + 2*ds*k2y - 3544./2565*ds*k3y + 1859./4104*ds*k4y - 11./40*ds*k5y)
+                    k4x, k4y = f(xi + 1932./2197*ds*k1x - 7200./2197*ds*k2x
+                                    + 7296./2197*ds*k3x,
+                                 yi + 1932./2197*ds*k1y - 7200./2197*ds*k2y
+                                    + 7296./2197*ds*k3y)
+                    k5x, k5y = f(xi + 439./216*ds*k1x - 8*ds*k2x
+                                    + 3680./513*ds*k3x - 845./4104*ds*k4x,
+                                 yi + 439./216*ds*k1y - 8*ds*k2y
+                                    + 3680./513*ds*k3y - 845./4104*ds*k4y)
+                    k6x, k6y = f(xi - 8./27*ds*k1x + 2*ds*k2x
+                                    - 3544./2565*ds*k3x + 1859./4104*ds*k4x
+                                    - 11./40*ds*k5x,
+                                 yi - 8./27*ds*k1y + 2*ds*k2y
+                                    - 3544./2565*ds*k3y + 1859./4104*ds*k4y
+                                    - 11./40*ds*k5y)
 
                 except IndexError:
                     # Out of the domain on one of the intermediate steps
                     break
-                dx4 = ds*(25./216*k1x + 1408./2565*k3x + 2197./4104*k4x - 1./5*k5x)
-                dy4 = ds*(25./216*k1y + 1408./2565*k3y + 2197./4104*k4y - 1./5*k5y)
-                dx5 = ds*(16./135*k1x + 6656./12825*k3x + 28561./56430*k4x - 9./50*k5x + 2./55*k6x)
-                dy5 = ds*(16./135*k1y + 6656./12825*k3y + 28561./56430*k4y - 9./50*k5y + 2./55*k6y)
+                dx4 = ds*(25./216*k1x + 1408./2565*k3x
+                          + 2197./4104*k4x - 1./5*k5x)
+                dy4 = ds*(25./216*k1y + 1408./2565*k3y
+                          + 2197./4104*k4y - 1./5*k5y)
+                dx5 = ds*(16./135*k1x + 6656./12825*k3x
+                          + 28561./56430*k4x - 9./50*k5x + 2./55*k6x)
+                dy5 = ds*(16./135*k1y + 6656./12825*k3y
+                          + 28561./56430*k4y - 9./50*k5y + 2./55*k6y)
 
                 ## Error is normalized to the axes coordinates (it's a distance)
-                error = numpy.sqrt(((dx5-dx4)/NGX)**2 + ((dy5-dy4)/NGY)**2)
+                error = np.sqrt(((dx5-dx4)/NGX)**2 + ((dy5-dy4)/NGY)**2)
                 if error < maxerror:
                     # Step is within tolerance so continue
                     xi += dx5
@@ -255,9 +276,12 @@ def streamplot(x, y, u, v, density=1, linewidth=1,
                 # Modify ds for the next iteration.
                 if len(xf_traj) > 2:
                     ## hacky curvature dependance:
-                    v1 = numpy.array((xf_traj[-1]-xf_traj[-2], yf_traj[-1]-yf_traj[-2]))
-                    v2 = numpy.array((xf_traj[-2]-xf_traj[-3], yf_traj[-2]-yf_traj[-3]))
-                    costheta = (v1/numpy.sqrt((v1**2).sum()) * v2/numpy.sqrt((v2**2).sum())).sum()
+                    v1 = np.array((xf_traj[-1]-xf_traj[-2],
+                                   yf_traj[-1]-yf_traj[-2]))
+                    v2 = np.array((xf_traj[-2]-xf_traj[-3],
+                                   yf_traj[-2]-yf_traj[-3]))
+                    costheta = (v1/np.sqrt((v1**2).sum()) *
+                                v2/np.sqrt((v2**2).sum())).sum()
                     if costheta < .8:
                         ds = .01
                         continue
@@ -307,11 +331,11 @@ def streamplot(x, y, u, v, density=1, linewidth=1,
             traj(NBX-1-indent, xi+indent)
 
     ## PLOTTING HERE.
-    #pylab.pcolormesh(numpy.linspace(x.min(), x.max(), NBX+1),
-    #                 numpy.linspace(y.min(), y.max(), NBY+1), blank)
+    #plt.pcolormesh(np.linspace(x.min(), x.max(), NBX+1),
+    #                 np.linspace(y.min(), y.max(), NBY+1), blank)
 
     # Load up the defaults - needed to get the color right.
-    if type(color) == numpy.ndarray:
+    if type(color) == np.ndarray:
         if vmin == None: vmin = color.min()
         if vmax == None: vmax = color.max()
         if norm == None: norm = matplotlib.colors.normalize
@@ -321,24 +345,24 @@ def streamplot(x, y, u, v, density=1, linewidth=1,
     for t in trajectories:
         # Finally apply the rescale to adjust back to user-coords from
         # grid-index coordinates.
-        tx = numpy.array(t[0])*DX+XOFF
-        ty = numpy.array(t[1])*DY+YOFF
+        tx = np.array(t[0])*DX+XOFF
+        ty = np.array(t[1])*DY+YOFF
 
-        tgx = numpy.array(t[0])
-        tgy = numpy.array(t[1])
+        tgx = np.array(t[0])
+        tgy = np.array(t[1])
 
-        points = numpy.array([tx, ty]).T.reshape(-1,1,2)
-        segments = numpy.concatenate([points[:-1], points[1:]], axis=1)
+        points = np.array([tx, ty]).T.reshape(-1,1,2)
+        segments = np.concatenate([points[:-1], points[1:]], axis=1)
 
         args = {}
-        if type(linewidth) == numpy.ndarray:
+        if type(linewidth) == np.ndarray:
             args['linewidth'] = value_at(linewidth, tgx, tgy)[:-1]
             arrowlinewidth = args['linewidth'][len(tgx)/2]
         else:
             args['linewidth'] = linewidth
             arrowlinewidth = linewidth
 
-        if type(color) == numpy.ndarray:
+        if type(color) == np.ndarray:
             args['color'] = cmap(norm(vmin=vmin,vmax=vmax)
                                  (value_at(color, tgx, tgy)[:-1]))
             arrowcolor = args['color'][len(tgx)/2]
@@ -348,32 +372,33 @@ def streamplot(x, y, u, v, density=1, linewidth=1,
 
         lc = matplotlib.collections.LineCollection\
              (segments, **args)
-        pylab.gca().add_collection(lc)
+        plt.gca().add_collection(lc)
 
         ## Add arrows half way along each trajectory.
         n = len(tx)/2
         p = mpp.FancyArrowPatch((tx[n],ty[n]), (tx[n+1],ty[n+1]),
                                 arrowstyle='->', lw=arrowlinewidth,
                                 mutation_scale=20*arrowsize, color=arrowcolor)
-        pylab.gca().add_patch(p)
+        plt.gca().add_patch(p)
 
-    pylab.xlim(x.min(), x.max())
-    pylab.ylim(y.min(), y.max())
+    plt.xlim(x.min(), x.max())
+    plt.ylim(y.min(), y.max())
     return
 
 def test():
-    pylab.figure(1)
-    x = numpy.linspace(-3,3,100)
-    y = numpy.linspace(-3,3,100)
-    u = -1-x**2+y[:,numpy.newaxis]
-    v = 1+x-y[:,numpy.newaxis]**2
-    speed = numpy.sqrt(u*u + v*v)
-    pylab.subplot(121)
-    streamplot(x, y, u, v, density=1, INTEGRATOR='RK4', color='b')
-    pylab.subplot(122)
-    streamplot(x, y, u, v, density=(1,1), INTEGRATOR='RK4', color=u,
-               linewidth=5*speed/speed.max())
-    pylab.show()
+    plt.figure(1)
+    x = np.linspace(-3,3,100)
+    y = np.linspace(-3,3,100)
+    u = -1-x**2+y[:,np.newaxis]
+    v = 1+x-y[:,np.newaxis]**2
+    speed = np.sqrt(u*u + v*v)
+
+    plt.subplot(121)
+    streamplot(x, y, u, v, density=1, color='b')
+    plt.subplot(122)
+    lw = 5*speed/speed.max()
+    streamplot(x, y, u, v, density=(1,1), color=u, linewidth=lw)
+    plt.show()
 
 if __name__ == '__main__':
     test()
