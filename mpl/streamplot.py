@@ -28,6 +28,27 @@ import matplotlib.pyplot as plt
 import matplotlib
 import matplotlib.patches as mpp
 
+
+def value_at(a, xi, yi):
+    ## Linear interpolation - nice and quick because we are
+    ## working in grid-index coordinates.
+    if type(xi) == np.ndarray:
+        x = xi.astype(np.int)
+        y = yi.astype(np.int)
+    else:
+        x = np.int(xi)
+        y = np.int(yi)
+    a00 = a[y,x]
+    a01 = a[y,x+1]
+    a10 = a[y+1,x]
+    a11 = a[y+1,x+1]
+    xt = xi - x
+    yt = yi - y
+    a0 = a00*(1-xt) + a01*xt
+    a1 = a10*(1-xt) + a11*xt
+    return a0*(1-yt) + a1*yt
+
+
 def streamplot(x, y, u, v, density=1, linewidth=1,
                color='k', cmap=None, norm=None, vmax=None, vmin=None,
                arrowsize=1, INTEGRATOR='RK4'):
@@ -109,25 +130,6 @@ def streamplot(x, y, u, v, density=1, linewidth=1,
         ## the blank array.
         return int((xi / bx_spacing) + 0.5), \
                int((yi / by_spacing) + 0.5)
-
-    def value_at(a, xi, yi):
-        ## Linear interpolation - nice and quick because we are
-        ## working in grid-index coordinates.
-        if type(xi) == np.ndarray:
-            x = xi.astype(np.int)
-            y = yi.astype(np.int)
-        else:
-            x = np.int(xi)
-            y = np.int(yi)
-        a00 = a[y,x]
-        a01 = a[y,x+1]
-        a10 = a[y+1,x]
-        a11 = a[y+1,x+1]
-        xt = xi - x
-        yt = yi - y
-        a0 = a00*(1-xt) + a01*xt
-        a1 = a10*(1-xt) + a11*xt
-        return a0*(1-yt) + a1*yt
 
     def rk4_integrate(x0, y0):
         ## This function does RK4 forward and back trajectories from
