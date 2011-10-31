@@ -1,9 +1,12 @@
 #!/usr/bin/env python
-import sys
 import argparse
 
+import numpy as np
 import motmot.FlyMovieFormat.FlyMovieFormat as FMF
-import numpy
+
+
+Y4M_MAGIC = 'YUV4MPEG2'
+ASPECT_RATIO = '1:1' # *pixel* aspect ratio
 
 
 if 1:
@@ -16,43 +19,45 @@ if 1:
 # contains informations about how to avoid the strange blocking problem that
 # happens when attempting to pipe directly to ffmpeg through stdin.
 
-def fmf2y4m( filename,
-          raten=25, # numerator
-          rated=1,  # denom
-          aspectn = 1, # numerator
-          aspectd = 1, # denom
-          rotate_180 = False,
-          ):
+def fmf2y4m(filename, out='fmf2vid_temp.y4m', fps=None, rotate_180=False):
+
     fmf = FMF.FlyMovie(filename)
     if fmf.get_format() not in ['MONO8','RAW8']:
-        raise NotImplementedError('Only MONO8 and RAW8 formats are currently supported.')
+        msg = 'Only MONO8 and RAW8 formats are currently supported.'
+        raise NotImplementedError(msg)
+
     width = fmf.get_width()//(fmf.get_bits_per_pixel()//8)
     height = fmf.get_height()
 
-    Y4M_MAGIC = 'YUV4MPEG2'
-    Y4M_FRAME_MAGIC = 'FRAME'
+    if fps is None:
+        times = fmf.get_all_timestamps()
+        fmf.seek(0) # get_all_timestamps leaves the fmf file at end
+        dt = np.median(np.diff(times))
+        fps = int(round(1./dt))
+        print "No fps specified. Using detected frame rate of %i fps" % fps
 
-    inter = 'Ip' # progressive
-    colorspace = 'Cmono'
+    y4m_opts = dict(y4mspec=Y4M_MAGIC, width=width, height=height, fps=fps,
+                    aspect_ratio=ASPECT_RATIO)
 
-    y4m_name = 'fmf2vid_temp.y4m'
-    with open(y4m_name, 'w') as y4mfile:
+    with open(out, 'w') as y4mfile:
 
-        y4mfile.write('%(Y4M_MAGIC)s W%(width)d H%(height)d F%(raten)d:%(rated)d %(inter)s A%(aspectn)d:%(aspectd)d %(colorspace)s\n'%locals())
+        y4mfile.write('%(y4mspec)s W%(width)d H%(height)d F%(fps)d:1'
+                      'Ip A%(aspect_ratio)s Cmono\n' % y4m_opts)
         while 1:
             try:
                 frame,timestamp = fmf.get_next_frame()
             except FMF.NoMoreFramesException, err:
                 break
 
-            y4mfile.write('%(Y4M_FRAME_MAGIC)s\n'%locals())
+            y4mfile.write('FRAME\n')
 
             if rotate_180:
-                frame = numpy.rot90(numpy.rot90(frame))
+                frame = np.rot90(np.rot90(frame))
 
             for i in range(height):
                 y4mfile.write(frame[i,:].tostring())
             y4mfile.flush()
+    return out
 
 
 def main():
@@ -70,10 +75,14 @@ ffmpeg -vcodec msmpeg4v2 -i x.y4m x.avi
     parser = argparse.ArgumentParser(usage)
 
     parser.add_argument('filename', help='fmf file')
+    parser.add_argument('--fps', type=int, default=None,
+                        help=("Frames per second of output. Currently, this "
+                              "must be an integer. If none, use median input "
+                              "frame rate (rounded to the nearest integer)"))
     parser.add_argument('--rotate-180', action='store_true')
     args = parser.parse_args()
 
-    fmf2y4m(filename = args.filename, rotate_180 = args.rotate_180)
+    fmf2y4m(filename=args.filename, fps=args.fps, rotate_180=args.rotate_180)
 
 if __name__=='__main__':
     main()
