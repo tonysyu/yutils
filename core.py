@@ -1,3 +1,4 @@
+from warnings import warn
 import numpy as np
 
 import multiloop
@@ -222,6 +223,7 @@ def arg_nearest(arr, value, atol=None, rtol=None):
     >>> arg_nearest(a, 3.1, rtol=0.1)
     2
     """
+    warn("Use numpy.searchsorted", DeprecationWarning)
     abs_diff = np.abs(np.asarray(arr) - value)
     idx = abs_diff.argmin()
     if atol is not None:
