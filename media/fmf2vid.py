@@ -1,7 +1,10 @@
-from optparse import OptionParser
+#!/usr/bin/env python
 import sys
+import argparse
+
 import motmot.FlyMovieFormat.FlyMovieFormat as FMF
 import numpy
+
 
 if 1:
     import signal
@@ -13,7 +16,7 @@ if 1:
 # contains informations about how to avoid the strange blocking problem that
 # happens when attempting to pipe directly to ffmpeg through stdin.
 
-def doit( filename,
+def fmf2y4m( filename,
           raten=25, # numerator
           rated=1,  # denom
           aspectn = 1, # numerator
@@ -62,22 +65,13 @@ the MPEG4 codec:
 ffmpeg -vcodec msmpeg4v2 -i x.y4m x.avi
 """
 
-    parser = OptionParser(usage)
+    parser = argparse.ArgumentParser(usage)
 
-    parser.add_option('--rotate-180', action='store_true',
-                      default=False )
+    parser.add_argument('filename', help='fmf file')
+    parser.add_argument('--rotate-180', action='store_true')
+    args = parser.parse_args()
 
-    (options, args) = parser.parse_args()
-
-    if len(args) != 1:
-        parser.print_help()
-        return
-
-    filename = args[0]
-
-    doit( filename = args[0],
-          rotate_180 = options.rotate_180,
-          )
+    fmf2y4m(filename = args.filename, rotate_180 = args.rotate_180)
 
 if __name__=='__main__':
     main()
