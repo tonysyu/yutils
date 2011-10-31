@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import os
 import argparse
+from fractions import Fraction
 
 import numpy as np
 import motmot.FlyMovieFormat.FlyMovieFormat as FMF
@@ -31,13 +32,15 @@ def fmf2y4m(fmf, fps, out='fmf2vid_temp.y4m', rotate_180=False):
     width = fmf.get_width()//(fmf.get_bits_per_pixel()//8)
     height = fmf.get_height()
 
+    fps = Fraction.from_float(fps).limit_denominator(1000)
+    fps = '%s:%s' % (fps.numerator, fps.denominator)
 
     y4m_opts = dict(y4mspec=Y4M_MAGIC, width=width, height=height, fps=fps,
                     aspect_ratio=ASPECT_RATIO)
 
     with open(out, 'w') as y4mfile:
 
-        y4mfile.write('%(y4mspec)s W%(width)d H%(height)d F%(fps)d:1 '
+        y4mfile.write('%(y4mspec)s W%(width)d H%(height)d F%(fps)s '
                       'Ip A%(aspect_ratio)s Cmono\n' % y4m_opts)
         while 1:
             try:
@@ -59,8 +62,10 @@ def fmf2y4m(fmf, fps, out='fmf2vid_temp.y4m', rotate_180=False):
 def get_fps(fmf):
     times = fmf.get_all_timestamps()
     fmf.seek(0) # get_all_timestamps leaves the fmf file at end
+    if len(times) == 1:
+        return 1
     dt = np.median(np.diff(times))
-    fps = int(round(1./dt))
+    fps = 1./dt
     return fps
 
 
@@ -68,7 +73,7 @@ def fmf2mov(filename, fps=None, rotate_180=False, crf=10):
     fmf = FMF.FlyMovie(filename)
     if fps is None:
         fps = get_fps(fmf)
-        print "No fps specified. Using detected frame rate of %i fps" % fps
+        print "No fps specified. Using detected frame rate of %g fps" % fps
     fpath, fext = os.path.splitext(filename)
     movfile = fpath + '.mov'
     y4mfile = fpath + '_temp.y4m'
