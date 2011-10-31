@@ -35,23 +35,25 @@ def fmf2y4m( filename,
     inter = 'Ip' # progressive
     colorspace = 'Cmono'
 
-    out_fd = sys.stdout
+    y4m_name = 'fmf2vid_temp.y4m'
+    with open(y4m_name, 'w') as y4mfile:
 
-    out_fd.write('%(Y4M_MAGIC)s W%(width)d H%(height)d F%(raten)d:%(rated)d %(inter)s A%(aspectn)d:%(aspectd)d %(colorspace)s\n'%locals())
-    while 1:
-        try:
-            frame,timestamp = fmf.get_next_frame()
-        except FMF.NoMoreFramesException, err:
-            break
+        y4mfile.write('%(Y4M_MAGIC)s W%(width)d H%(height)d F%(raten)d:%(rated)d %(inter)s A%(aspectn)d:%(aspectd)d %(colorspace)s\n'%locals())
+        while 1:
+            try:
+                frame,timestamp = fmf.get_next_frame()
+            except FMF.NoMoreFramesException, err:
+                break
 
-        out_fd.write('%(Y4M_FRAME_MAGIC)s\n'%locals())
+            y4mfile.write('%(Y4M_FRAME_MAGIC)s\n'%locals())
 
-        if rotate_180:
-            frame = numpy.rot90(numpy.rot90(frame))
+            if rotate_180:
+                frame = numpy.rot90(numpy.rot90(frame))
 
-        for i in range(height):
-            out_fd.write(frame[i,:].tostring())
-        out_fd.flush()
+            for i in range(height):
+                y4mfile.write(frame[i,:].tostring())
+            y4mfile.flush()
+
 
 def main():
     usage = """%prog FILENAME [options]
