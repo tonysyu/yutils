@@ -51,7 +51,7 @@ def value_at(a, xi, yi):
 
 def streamplot(x, y, u, v, density=1, linewidth=1,
                color='k', cmap=None, norm=None, vmax=None, vmin=None,
-               arrowsize=1, INTEGRATOR='RK4'):
+               arrowsize=1, INTEGRATOR='RK4', ax=None):
     """Draws streamlines of a vector flow.
 
     Parameters
@@ -75,6 +75,7 @@ def streamplot(x, y, u, v, density=1, linewidth=1,
 
     INTEGRATOR is experimental. Currently, RK4 should be used.
     """
+    ax = ax if ax is not None else plt.gca()
 
     ## Sanity checks.
     assert len(x.shape)==1
@@ -374,14 +375,14 @@ def streamplot(x, y, u, v, density=1, linewidth=1,
 
         lc = matplotlib.collections.LineCollection\
              (segments, **args)
-        plt.gca().add_collection(lc)
+        ax.add_collection(lc)
 
         ## Add arrows half way along each trajectory.
         n = len(tx)/2
         p = mpp.FancyArrowPatch((tx[n],ty[n]), (tx[n+1],ty[n+1]),
                                 arrowstyle='->', lw=arrowlinewidth,
                                 mutation_scale=20*arrowsize, color=arrowcolor)
-        plt.gca().add_patch(p)
+        ax.add_patch(p)
 
     plt.xlim(x.min(), x.max())
     plt.ylim(y.min(), y.max())
