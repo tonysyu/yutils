@@ -7,11 +7,10 @@ def get_parser():
     parser = argparse.ArgumentParser()
     parser.add_argument('search', help="search string")
     parser.add_argument('replace', help="replacement string")
-    parser.add_argument('-f', '--file-filter', default='*',
-                        help="glob identifying files to filter "
-                             "For example '*.jpg' would limit search "
-                             "and replace to jpeg images. Note that "
-                             "globs must be quoted to avoid confusion.")
+    parser.add_argument('-f', '--files', nargs='+',
+                        help="Files to filter. This is easily specified using "
+                             "wild card characters. For example '*.jpg' would "
+                             "limit search and replace to jpeg images.")
     parser.add_argument('--run', action='store_true',
                         help="If True, display new names; don't move files")
     return parser
@@ -19,9 +18,10 @@ def get_parser():
 def main():
     parser = get_parser()
     args = parser.parse_args()
-    files = glob.glob(args.file_filter)
+    if args.files is None:
+        args.files = glob.glob('*')
 
-    for old in files:
+    for old in args.files:
         new = old.replace(args.search, args.replace)
         if new == old:
             continue
