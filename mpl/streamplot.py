@@ -52,6 +52,12 @@ def value_at(a, xi, yi):
     return a0*(1-yt) + a1*yt
 
 
+class Grid(object):
+    def __init__(self, x, y):
+        self.nx = len(x)
+        self.ny = len(y)
+
+
 def streamplot(x, y, u, v, density=1, linewidth=1,
                color='k', cmap=None, norm=None, vmax=None, vmin=None,
                arrowsize=1, INTEGRATOR='RK4', ax=None):
@@ -90,9 +96,7 @@ def streamplot(x, y, u, v, density=1, linewidth=1,
     if type(color) == np.ndarray:
         assert color.shape == (len(y), len(x))
 
-    ## Set up some constants - size of the grid used.
-    NGX = len(x)
-    NGY = len(y)
+    grid = Grid(x, y)
     ## Constants used to convert between grid index coords and user coords.
     DX = x[1]-x[0]
     DY = y[1]-y[0]
@@ -105,8 +109,8 @@ def streamplot(x, y, u, v, density=1, linewidth=1,
     speed = np.sqrt(u*u+v*v)
     ## s (path length) will now be in axes-coordinates, but we must
     ## rescale u for integrations.
-    u *= NGX
-    v *= NGY
+    u *= grid.nx
+    v *= grid.ny
     ## Now u and v in grid-coordinates.
 
     ## Blank array: This is the heart of the algorithm. It begins life
@@ -126,8 +130,8 @@ def streamplot(x, y, u, v, density=1, linewidth=1,
 
     ## Constants for conversion between grid-index space and
     ## blank-index space
-    bx_spacing = NGX/float(NBX-1)
-    by_spacing = NGY/float(NBY-1)
+    bx_spacing = grid.nx/float(NBX-1)
+    by_spacing = grid.ny/float(NBY-1)
 
     def blank_pos(xi, yi):
         ## Takes grid space coords and returns nearest space in
@@ -152,14 +156,14 @@ def streamplot(x, y, u, v, density=1, linewidth=1,
         ## This function does RK4 forward and back trajectories from
         ## the initial conditions, with the odd 'blank array'
         ## termination conditions. TODO tidy the integration loops.
-        check = lambda xi, yi: xi>=0 and xi<NGX-1 and yi>=0 and yi<NGY-1
+        check = lambda xi, yi: xi>=0 and xi<grid.nx-1 and yi>=0 and yi<grid.ny-1
 
         bx_changes = []
         by_changes = []
 
         ## Integrator function
         def rk4(x0, y0, f):
-            ds = 0.01 #min(1./NGX, 1./NGY, 0.01)
+            ds = 0.01 #min(1./grid.ny, 1./grid.ny, 0.01)
             stotal = 0
             xi = x0
             yi = y0
@@ -257,7 +261,7 @@ def streamplot(x, y, u, v, density=1, linewidth=1,
                           + 28561./56430*k4y - 9./50*k5y + 2./55*k6y)
 
                 ## Error is normalized to the axes coordinates (it's a distance)
-                error = np.sqrt(((dx5-dx4)/NGX)**2 + ((dy5-dy4)/NGY)**2)
+                error = np.sqrt(((dx5-dx4)/grid.nx)**2 + ((dy5-dy4)/grid.ny)**2)
                 if error < maxerror:
                     # Step is within tolerance so continue
                     xi += dx5
