@@ -405,8 +405,8 @@ def streamplot(x, y, u, v, density=1, linewidth=1,
                                 mutation_scale=20*arrowsize, color=arrowcolor)
         ax.add_patch(p)
 
-    plt.xlim(x.min(), x.max())
-    plt.ylim(y.min(), y.max())
+    ax.set_xlim(x.min(), x.max())
+    ax.set_ylim(y.min(), y.max())
     return
 
 def test():
@@ -426,4 +426,5 @@ def test():
 
 if __name__ == '__main__':
     test()
+
 
