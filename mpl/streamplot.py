@@ -29,6 +29,9 @@ import matplotlib
 import matplotlib.patches as mpp
 
 
+__all__ = ['streamplot']
+
+
 def value_at(a, xi, yi):
     ## Linear interpolation - nice and quick because we are
     ## working in grid-index coordinates.
