@@ -63,6 +63,9 @@ class Grid(object):
         self.x_origin = x[0]
         self.y_origin = y[0]
 
+        self.width = x[-1] - x[0]
+        self.height = y[-1] - y[0]
+
 
 def streamplot(x, y, u, v, density=1, linewidth=1,
                color='k', cmap=None, norm=None, vmax=None, vmin=None,
@@ -105,8 +108,8 @@ def streamplot(x, y, u, v, density=1, linewidth=1,
     grid = Grid(x, y)
 
     ## Now rescale velocity onto axes-coordinates
-    u = u / (x[-1]-x[0])
-    v = v / (y[-1]-y[0])
+    u = u / grid.width
+    v = v / grid.height
     speed = np.sqrt(u*u+v*v)
     ## s (path length) will now be in axes-coordinates, but we must
     ## rescale u for integrations.
