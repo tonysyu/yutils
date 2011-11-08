@@ -60,6 +60,10 @@ class Grid(object):
         self.dx = x[1]-x[0]
         self.dy = y[1]-y[0]
 
+        self.x_origin = x[0]
+        self.y_origin = y[0]
+
+
 def streamplot(x, y, u, v, density=1, linewidth=1,
                color='k', cmap=None, norm=None, vmax=None, vmin=None,
                arrowsize=1, INTEGRATOR='RK4', ax=None):
@@ -99,9 +103,6 @@ def streamplot(x, y, u, v, density=1, linewidth=1,
         assert color.shape == (len(y), len(x))
 
     grid = Grid(x, y)
-    ## Constants used to convert between grid index coords and user coords.
-    XOFF = x[0]
-    YOFF = y[0]
 
     ## Now rescale velocity onto axes-coordinates
     u = u / (x[-1]-x[0])
@@ -355,8 +356,8 @@ def streamplot(x, y, u, v, density=1, linewidth=1,
     for t in trajectories:
         # Finally apply the rescale to adjust back to user-coords from
         # grid-index coordinates.
-        tx = np.array(t[0])*grid.dx+XOFF
-        ty = np.array(t[1])*grid.dy+YOFF
+        tx = np.array(t[0]) * grid.dx + grid.x_origin
+        ty = np.array(t[1]) * grid.dy + grid.y_origin
 
         tgx = np.array(t[0])
         tgy = np.array(t[1])
