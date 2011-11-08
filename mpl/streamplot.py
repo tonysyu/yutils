@@ -143,13 +143,13 @@ def streamplot(x, y, u, v, density=1, linewidth=1,
         return int((xi / bx_spacing) + 0.5), \
                int((yi / by_spacing) + 0.5)
 
-    def f(xi, yi):
+    def forward_time(xi, yi):
         dt_ds = 1./value_at(speed, xi, yi)
         ui = value_at(u, xi, yi)
         vi = value_at(v, xi, yi)
         return ui*dt_ds, vi*dt_ds
 
-    def g(xi, yi):
+    def backward_time(xi, yi):
         dt_ds = 1./value_at(speed, xi, yi)
         ui = value_at(u, xi, yi)
         vi = value_at(v, xi, yi)
@@ -302,14 +302,14 @@ def streamplot(x, y, u, v, density=1, linewidth=1,
                 ds = min(maxds, 0.85*ds*(maxerror/error)**.2)
             return stotal, xf_traj, yf_traj
 
-        ## Forward and backward trajectories
         if INTEGRATOR == 'RK4':
             integrator = rk4
         elif INTEGRATOR == 'RK45':
             integrator = rk45
 
-        sf, xf_traj, yf_traj = integrator(x0, y0, f)
-        sb, xb_traj, yb_traj = integrator(x0, y0, g)
+        ## Forward and backward trajectories
+        sf, xf_traj, yf_traj = integrator(x0, y0, forward_time)
+        sb, xb_traj, yb_traj = integrator(x0, y0, backward_time)
         stotal = sf + sb
         x_traj = xb_traj[::-1] + xf_traj[1:]
         y_traj = yb_traj[::-1] + yf_traj[1:]
