@@ -57,6 +57,8 @@ class Grid(object):
         self.nx = len(x)
         self.ny = len(y)
 
+        self.dx = x[1]-x[0]
+        self.dy = y[1]-y[0]
 
 def streamplot(x, y, u, v, density=1, linewidth=1,
                color='k', cmap=None, norm=None, vmax=None, vmin=None,
@@ -98,8 +100,6 @@ def streamplot(x, y, u, v, density=1, linewidth=1,
 
     grid = Grid(x, y)
     ## Constants used to convert between grid index coords and user coords.
-    DX = x[1]-x[0]
-    DY = y[1]-y[0]
     XOFF = x[0]
     YOFF = y[0]
 
@@ -355,8 +355,8 @@ def streamplot(x, y, u, v, density=1, linewidth=1,
     for t in trajectories:
         # Finally apply the rescale to adjust back to user-coords from
         # grid-index coordinates.
-        tx = np.array(t[0])*DX+XOFF
-        ty = np.array(t[1])*DY+YOFF
+        tx = np.array(t[0])*grid.dx+XOFF
+        ty = np.array(t[1])*grid.dy+YOFF
 
         tgx = np.array(t[0])
         tgy = np.array(t[1])
