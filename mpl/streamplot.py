@@ -410,21 +410,19 @@ def streamplot(x, y, u, v, density=1, linewidth=1,
     return
 
 def test():
-    plt.figure(1)
     x = np.linspace(-3,3,100)
     y = np.linspace(-3,3,100)
     u = -1-x**2+y[:,np.newaxis]
     v = 1+x-y[:,np.newaxis]**2
     speed = np.sqrt(u*u + v*v)
 
-    plt.subplot(121)
-    streamplot(x, y, u, v, density=1, color='b')
-    plt.subplot(122)
+    f, axes = plt.subplots(ncols=2)
+    streamplot(x, y, u, v, density=1, color='b', ax=axes[0])
     lw = 5*speed/speed.max()
-    streamplot(x, y, u, v, density=(1,1), color=u, linewidth=lw)
+    streamplot(x, y, u, v, density=(1,1), color=u, linewidth=lw, ax=axes[1])
+
     plt.show()
 
 if __name__ == '__main__':
     test()
-
 
