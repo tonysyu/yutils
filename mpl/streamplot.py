@@ -155,7 +155,6 @@ def streamplot(x, y, u, v, density=1, linewidth=1,
         vi = value_at(v, xi, yi)
         return -ui*dt_ds, -vi*dt_ds
 
-
     def within_index_grid(xi, yi):
         return xi >= 0 and xi < grid.nx-1 and yi >= 0 and yi < grid.ny-1
 
@@ -176,6 +175,7 @@ def streamplot(x, y, u, v, density=1, linewidth=1,
             xb, yb = blank_pos(xi, yi)
             xf_traj = []
             yf_traj = []
+
             while within_index_grid(xi, yi):
                 # Time step. First save the point.
                 xf_traj.append(xi)
@@ -192,10 +192,14 @@ def streamplot(x, y, u, v, density=1, linewidth=1,
                 xi += ds*(k1x+2*k2x+2*k3x+k4x) / 6.
                 yi += ds*(k1y+2*k2y+2*k3y+k4y) / 6.
                 # Final position might be out of the domain
-                if not within_index_grid(xi, yi): break
+
+                if not within_index_grid(xi, yi):
+                    break
+
                 stotal += ds
                 # Next, if s gets to thres, check blank.
                 new_xb, new_yb = blank_pos(xi, yi)
+
                 if new_xb != xb or new_yb != yb:
                     # New square, so check and colour. Quit if required.
                     if blank[new_yb,new_xb] == 0:
@@ -228,6 +232,7 @@ def streamplot(x, y, u, v, density=1, linewidth=1,
             xb, yb = blank_pos(xi, yi)
             xf_traj = []
             yf_traj = []
+
             while within_index_grid(xi, yi):
                 # Time step. First save the point.
                 xf_traj.append(xi)
@@ -273,7 +278,8 @@ def streamplot(x, y, u, v, density=1, linewidth=1,
                     xi += dx5
                     yi += dy5
                     # Final position might be out of the domain
-                    if not within_index_grid(xi, yi): break
+                    if not within_index_grid(xi, yi):
+                        break
                     stotal += ds
                     # Next, if s gets to thres, check blank.
                     new_xb, new_yb = blank_pos(xi, yi)
@@ -317,7 +323,9 @@ def streamplot(x, y, u, v, density=1, linewidth=1,
         y_traj = yb_traj[::-1] + yf_traj[1:]
 
         ## Tests to check length of traj. Remember, s in units of axes.
-        if len(x_traj) < 1: return None
+        if len(x_traj) < 1:
+            return None
+
         if stotal > .2:
             initxb, inityb = blank_pos(x0, y0)
             blank[inityb, initxb] = 1
