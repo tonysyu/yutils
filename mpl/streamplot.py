@@ -416,10 +416,11 @@ def test():
     v = 1+x-y[:,np.newaxis]**2
     speed = np.sqrt(u*u + v*v)
 
-    f, axes = plt.subplots(ncols=2)
+    f, axes = plt.subplots(ncols=3)
     streamplot(x, y, u, v, density=1, color='b', ax=axes[0])
     lw = 5*speed/speed.max()
     streamplot(x, y, u, v, density=(1,1), color=u, linewidth=lw, ax=axes[1])
+    streamplot(x, y, u, v, density=(1,1), INTEGRATOR='RK45', ax=axes[2])
 
     plt.show()
 
