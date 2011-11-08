@@ -156,11 +156,13 @@ def streamplot(x, y, u, v, density=1, linewidth=1,
         return -ui*dt_ds, -vi*dt_ds
 
 
+    def within_index_grid(xi, yi):
+        return xi >= 0 and xi < grid.nx-1 and yi >= 0 and yi < grid.ny-1
+
     def rk4_integrate(x0, y0):
         ## This function does RK4 forward and back trajectories from
         ## the initial conditions, with the odd 'blank array'
         ## termination conditions. TODO tidy the integration loops.
-        check = lambda xi, yi: xi>=0 and xi<grid.nx-1 and yi>=0 and yi<grid.ny-1
 
         bx_changes = []
         by_changes = []
@@ -174,7 +176,7 @@ def streamplot(x, y, u, v, density=1, linewidth=1,
             xb, yb = blank_pos(xi, yi)
             xf_traj = []
             yf_traj = []
-            while check(xi, yi):
+            while within_index_grid(xi, yi):
                 # Time step. First save the point.
                 xf_traj.append(xi)
                 yf_traj.append(yi)
@@ -190,7 +192,7 @@ def streamplot(x, y, u, v, density=1, linewidth=1,
                 xi += ds*(k1x+2*k2x+2*k3x+k4x) / 6.
                 yi += ds*(k1y+2*k2y+2*k3y+k4y) / 6.
                 # Final position might be out of the domain
-                if not check(xi, yi): break
+                if not within_index_grid(xi, yi): break
                 stotal += ds
                 # Next, if s gets to thres, check blank.
                 new_xb, new_yb = blank_pos(xi, yi)
@@ -226,7 +228,7 @@ def streamplot(x, y, u, v, density=1, linewidth=1,
             xb, yb = blank_pos(xi, yi)
             xf_traj = []
             yf_traj = []
-            while check(xi, yi):
+            while within_index_grid(xi, yi):
                 # Time step. First save the point.
                 xf_traj.append(xi)
                 yf_traj.append(yi)
@@ -271,7 +273,7 @@ def streamplot(x, y, u, v, density=1, linewidth=1,
                     xi += dx5
                     yi += dy5
                     # Final position might be out of the domain
-                    if not check(xi, yi): break
+                    if not within_index_grid(xi, yi): break
                     stotal += ds
                     # Next, if s gets to thres, check blank.
                     new_xb, new_yb = blank_pos(xi, yi)
