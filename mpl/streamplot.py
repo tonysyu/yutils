@@ -135,23 +135,23 @@ def streamplot(x, y, u, v, density=1, linewidth=1,
         return int((xi / bx_spacing) + 0.5), \
                int((yi / by_spacing) + 0.5)
 
+    def f(xi, yi):
+        dt_ds = 1./value_at(speed, xi, yi)
+        ui = value_at(u, xi, yi)
+        vi = value_at(v, xi, yi)
+        return ui*dt_ds, vi*dt_ds
+
+    def g(xi, yi):
+        dt_ds = 1./value_at(speed, xi, yi)
+        ui = value_at(u, xi, yi)
+        vi = value_at(v, xi, yi)
+        return -ui*dt_ds, -vi*dt_ds
+
+
     def rk4_integrate(x0, y0):
         ## This function does RK4 forward and back trajectories from
         ## the initial conditions, with the odd 'blank array'
         ## termination conditions. TODO tidy the integration loops.
-
-        def f(xi, yi):
-            dt_ds = 1./value_at(speed, xi, yi)
-            ui = value_at(u, xi, yi)
-            vi = value_at(v, xi, yi)
-            return ui*dt_ds, vi*dt_ds
-
-        def g(xi, yi):
-            dt_ds = 1./value_at(speed, xi, yi)
-            ui = value_at(u, xi, yi)
-            vi = value_at(v, xi, yi)
-            return -ui*dt_ds, -vi*dt_ds
-
         check = lambda xi, yi: xi>=0 and xi<NGX-1 and yi>=0 and yi<NGY-1
 
         bx_changes = []
@@ -408,3 +408,4 @@ def test():
 
 if __name__ == '__main__':
     test()
+
