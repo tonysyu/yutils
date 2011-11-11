@@ -144,7 +144,8 @@ def streamplot(x, y, u, v, density=1, linewidth=1,
                int((yi / by_spacing) + 0.5)
 
     def forward_time(xi, yi):
-        dt_ds = 1./value_at(speed, xi, yi)
+        ds_dt = value_at(speed, xi, yi)
+        dt_ds = 0 if ds_dt == 0 else 1./ds_dt
         ui = value_at(u, xi, yi)
         vi = value_at(v, xi, yi)
         return ui*dt_ds, vi*dt_ds
