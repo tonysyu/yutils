@@ -150,10 +150,8 @@ def streamplot(x, y, u, v, density=1, linewidth=1,
         return ui*dt_ds, vi*dt_ds
 
     def backward_time(xi, yi):
-        dt_ds = 1./value_at(speed, xi, yi)
-        ui = value_at(u, xi, yi)
-        vi = value_at(v, xi, yi)
-        return -ui*dt_ds, -vi*dt_ds
+        dxi, dyi = forward_time(xi, yi)
+        return -dxi, -dyi
 
     def within_index_grid(xi, yi):
         return xi >= 0 and xi < grid.nx-1 and yi >= 0 and yi < grid.ny-1
@@ -427,5 +425,4 @@ def test():
 
 if __name__ == '__main__':
     test()
-
 
