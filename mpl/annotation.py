@@ -5,7 +5,7 @@ from yutils.scaling import loglog
 
 
 def slope_marker(origin, slope, size_frac=0.1, pad_frac=0.1, ax=None,
-                 invert=False):
+                 fontsize=None, invert=False):
     """Plot triangular slope marker labeled with slope.
 
     Parameters
@@ -68,10 +68,13 @@ def slope_marker(origin, slope, size_frac=0.1, pad_frac=0.1, ax=None,
     va = 'top' if y_pad > 0 else 'bottom'
     ha = 'left' if x_pad > 0 else 'right'
     if rise is not None:
-        ax.text(x_run, y_run, str(run), va=va, ha='center')
-        ax.text(x_rise, y_rise, str(rise), ha=ha, va='center')
+        ax.text(x_run, y_run, str(run), fontsize=fontsize,
+                va=va, ha='center')
+        ax.text(x_rise, y_rise, str(rise), fontsize=fontsize,
+                ha=ha, va='center')
     else:
-        ax.text(x_rise, y_rise, str(slope), ha=ha, va='center')
+        ax.text(x_rise, y_rise, str(slope), fontsize=fontsize,
+                ha=ha, va='center')
 
     ax.add_patch(_slope_triangle(origin, dx, dy))
 
