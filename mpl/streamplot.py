@@ -405,8 +405,8 @@ def streamplot(x, y, u, v, density=1, linewidth=1,
                                 mutation_scale=20*arrowsize, color=arrowcolor)
         ax.add_patch(p)
 
-    ax.set_xlim(x.min(), x.max())
-    ax.set_ylim(y.min(), y.max())
+    ax.update_datalim(((x.min(), y.min()), (x.max(), y.max())))
+    ax.autoscale_view(tight=True)
     return
 
 def test():
