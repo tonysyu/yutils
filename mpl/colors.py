@@ -66,12 +66,11 @@ _spec_seq = {'blue': [(0.0, 0.0, 0.0),
                     (1.0, 0.40392157435417175, 0.40392157435417175)]}
 white_red = _SequentialAlphaColormap(_spec_seq, _spec_seq, _lutsize)
 
-wo_speq = {'blue': [(0., 0.386, 0.386),
-              (1., 0.386, 0.386)],
-     'green': [(0., 0.714, 0.714),
-               (1., 0.714, 0.714)],
-     'red': [(0., 0.979, 0.979),
-             (1., 0.979, 0.979)]}
+wo_speq = {'blue': [(0., 1.0, 1.0),
+                    (1., 0.386, 0.386)],
+           'green': [(0., 1.0, 1.0),
+                     (1., 0.714, 0.714)],
+           'red': [(0., 1.0, 1.0),
+                   (1., 0.979, 0.979)]}
 white_orange = _SequentialAlphaColormap(wo_speq, wo_speq, _lutsize)
 white_orange.max_alpha = 1
-
