@@ -54,6 +54,21 @@ def value_at(a, xi, yi):
 
 class Grid(object):
     def __init__(self, x, y):
+
+        if len(x.shape) == 2:
+            x_row = x[0]
+            assert np.allclose(x_row, x)
+            x = x_row
+        else:
+            assert len(x.shape)==1
+
+        if len(y.shape) == 2:
+            y_col = y[:, 0]
+            assert np.allclose(y_col, y.T)
+            y = y_col
+        else:
+            assert len(y.shape)==1
+
         self.nx = len(x)
         self.ny = len(y)
 
@@ -65,6 +80,11 @@ class Grid(object):
 
         self.width = x[-1] - x[0]
         self.height = y[-1] - y[0]
+
+    @property
+    def shape(self):
+        return self.ny, self.nx
+
 
 
 def streamplot(x, y, u, v, density=1, linewidth=1,
@@ -94,29 +114,17 @@ def streamplot(x, y, u, v, density=1, linewidth=1,
     INTEGRATOR is experimental. Currently, RK4 should be used.
     """
     ax = ax if ax is not None else plt.gca()
-    if len(x.shape) == 2:
-        x_row = x[0]
-        assert np.allclose(x_row, x)
-        x = x_row
-    else:
-        assert len(x.shape)==1
-
-    if len(y.shape) == 2:
-        y_col = y[:, 0]
-        assert np.allclose(y_col, y.T)
-        y = y_col
-    else:
-        assert len(y.shape)==1
-
-    ## Sanity checks.
-    assert u.shape == (len(y), len(x))
-    assert v.shape == (len(y), len(x))
-    if type(linewidth) == np.ndarray:
-        assert linewidth.shape == (len(y), len(x))
-    if type(color) == np.ndarray:
-        assert color.shape == (len(y), len(x))
 
     grid = Grid(x, y)
+
+    ## Sanity checks.
+    assert u.shape == grid.shape
+    assert v.shape == grid.shape
+    if type(linewidth) == np.ndarray:
+        assert linewidth.shape == grid.shape
+    if type(color) == np.ndarray:
+        assert color.shape == grid.shape
+
 
     ## Now rescale velocity onto axes-coordinates
     u = u / grid.width
@@ -328,6 +336,8 @@ def streamplot(x, y, u, v, density=1, linewidth=1,
         ## Forward and backward trajectories
         sf, xf_traj, yf_traj = integrator(x0, y0, forward_time)
         sb, xb_traj, yb_traj = integrator(x0, y0, backward_time)
+
+        # combine forward and backward trajectories
         stotal = sf + sb
         x_traj = xb_traj[::-1] + xf_traj[1:]
         y_traj = yb_traj[::-1] + yf_traj[1:]
@@ -341,6 +351,7 @@ def streamplot(x, y, u, v, density=1, linewidth=1,
             blank[inityb, initxb] = 1
             return x_traj, y_traj
         else:
+            # remove short trajectories
             for xb, yb in zip(bx_changes, by_changes):
                 blank[yb, xb] = 0
             return None
