@@ -41,15 +41,15 @@ def value_at(a, xi, yi):
     else:
         x = np.int(xi)
         y = np.int(yi)
-    a00 = a[y,x]
-    a01 = a[y,x+1]
-    a10 = a[y+1,x]
-    a11 = a[y+1,x+1]
+    a00 = a[y, x]
+    a01 = a[y, x + 1]
+    a10 = a[y + 1, x]
+    a11 = a[y + 1, x + 1]
     xt = xi - x
     yt = yi - y
-    a0 = a00*(1-xt) + a01*xt
-    a1 = a10*(1-xt) + a11*xt
-    return a0*(1-yt) + a1*yt
+    a0 = a00 * (1 - xt) + a01 * xt
+    a1 = a10 * (1 - xt) + a11 * xt
+    return a0 * (1 - yt) + a1 * yt
 
 
 class Grid(object):
@@ -60,20 +60,20 @@ class Grid(object):
             assert np.allclose(x_row, x)
             x = x_row
         else:
-            assert len(x.shape)==1
+            assert len(x.shape) == 1
 
         if len(y.shape) == 2:
             y_col = y[:, 0]
             assert np.allclose(y_col, y.T)
             y = y_col
         else:
-            assert len(y.shape)==1
+            assert len(y.shape) == 1
 
         self.nx = len(x)
         self.ny = len(y)
 
-        self.dx = x[1]-x[0]
-        self.dy = y[1]-y[0]
+        self.dx = x[1] - x[0]
+        self.dy = y[1] - y[0]
 
         self.x_origin = x[0]
         self.y_origin = y[0]
@@ -87,9 +87,9 @@ class Grid(object):
 
 
 
-def streamplot(x, y, u, v, density=1, linewidth=1,
-               color='k', cmap=None, norm=None, vmax=None, vmin=None,
-               arrowsize=1, INTEGRATOR='RK4', ax=None):
+def streamplot(x, y, u, v, density=1, linewidth=1, color='k', cmap=None,
+               norm=None, vmax=None, vmin=None, arrowsize=1, INTEGRATOR='RK4',
+               ax=None):
     """Draws streamlines of a vector flow.
 
     Parameters
@@ -143,18 +143,18 @@ def streamplot(x, y, u, v, density=1, linewidth=1,
     ## approximate spacing between trajectories.
     if type(density) == float or type(density) == int:
         assert density > 0
-        NBX = int(30*density)
-        NBY = int(30*density)
+        NBX = int(30 * density)
+        NBY = int(30 * density)
     else:
         assert len(density) > 0
-        NBX = int(30*density[0])
-        NBY = int(30*density[1])
-    blank = np.zeros((NBY,NBX))
+        NBX = int(30 * density[0])
+        NBY = int(30 * density[1])
+    blank = np.zeros((NBY, NBX))
 
     ## Constants for conversion between grid-index space and
     ## blank-index space
-    bx_spacing = grid.nx/float(NBX-1)
-    by_spacing = grid.ny/float(NBY-1)
+    bx_spacing = grid.nx / float(NBX - 1)
+    by_spacing = grid.ny / float(NBY - 1)
 
     def blank_pos(xi, yi):
         ## Takes grid space coords and returns nearest space in
@@ -164,17 +164,17 @@ def streamplot(x, y, u, v, density=1, linewidth=1,
 
     def forward_time(xi, yi):
         ds_dt = value_at(speed, xi, yi)
-        dt_ds = 0 if ds_dt == 0 else 1./ds_dt
+        dt_ds = 0 if ds_dt == 0 else 1. / ds_dt
         ui = value_at(u, xi, yi)
         vi = value_at(v, xi, yi)
-        return ui*dt_ds, vi*dt_ds
+        return ui * dt_ds, vi * dt_ds
 
     def backward_time(xi, yi):
         dxi, dyi = forward_time(xi, yi)
         return -dxi, -dyi
 
     def within_index_grid(xi, yi):
-        return xi >= 0 and xi < grid.nx-1 and yi >= 0 and yi < grid.ny-1
+        return xi >= 0 and xi < (grid.nx - 1) and yi >= 0 and yi < (grid.ny - 1)
 
     def rk4_integrate(x0, y0):
         ## This function does RK4 forward and back trajectories from
@@ -369,12 +369,12 @@ def streamplot(x, y, u, v, density=1, linewidth=1,
     blank_grid_size = max(NBX,NBY)
     ## Now we build up the trajectory set. I've found it best to look
     ## for blank==0 along the edges first, and work inwards.
-    for indent in range(blank_grid_size/2):
-        for xi in range(blank_grid_size-2*indent):
+    for indent in range(blank_grid_size / 2):
+        for xi in range(blank_grid_size - 2*indent):
             traj(xi+indent, indent)
-            traj(xi+indent, NBY-1-indent)
+            traj(xi+indent, NBY - 1 - indent)
             traj(indent, xi+indent)
-            traj(NBX-1-indent, xi+indent)
+            traj(NBX - 1 - indent, xi + indent)
 
     ## PLOTTING HERE.
     #plt.pcolormesh(np.linspace(x.min(), x.max(), NBX+1),
@@ -397,13 +397,13 @@ def streamplot(x, y, u, v, density=1, linewidth=1,
         tgx = np.array(t[0])
         tgy = np.array(t[1])
 
-        points = np.array([tx, ty]).T.reshape(-1,1,2)
+        points = np.array([tx, ty]).T.reshape(-1, 1, 2)
         segments = np.concatenate([points[:-1], points[1:]], axis=1)
 
         args = {}
         if type(linewidth) == np.ndarray:
             args['linewidth'] = value_at(linewidth, tgx, tgy)[:-1]
-            arrowlinewidth = args['linewidth'][len(tgx)/2]
+            arrowlinewidth = args['linewidth'][len(tgx) / 2]
         else:
             args['linewidth'] = linewidth
             arrowlinewidth = linewidth
@@ -411,18 +411,17 @@ def streamplot(x, y, u, v, density=1, linewidth=1,
         if type(color) == np.ndarray:
             args['color'] = cmap(norm(vmin=vmin,vmax=vmax)
                                  (value_at(color, tgx, tgy)[:-1]))
-            arrowcolor = args['color'][len(tgx)/2]
+            arrowcolor = args['color'][len(tgx) / 2]
         else:
             args['color'] = color
             arrowcolor = color
 
-        lc = matplotlib.collections.LineCollection\
-             (segments, **args)
+        lc = matplotlib.collections.LineCollection(segments, **args)
         ax.add_collection(lc)
 
         ## Add arrows half way along each trajectory.
-        n = len(tx)/2
-        p = mpp.FancyArrowPatch((tx[n],ty[n]), (tx[n+1],ty[n+1]),
+        n = len(tx) / 2
+        p = mpp.FancyArrowPatch((tx[n], ty[n]), (tx[n+1], ty[n+1]),
                                 arrowstyle='->', lw=arrowlinewidth,
                                 mutation_scale=20*arrowsize, color=arrowcolor)
         ax.add_patch(p)
@@ -434,8 +433,8 @@ def streamplot(x, y, u, v, density=1, linewidth=1,
 def test():
     x = np.linspace(-3,3,100)
     y = np.linspace(-3,3,100)
-    u = -1-x**2+y[:,np.newaxis]
-    v = 1+x-y[:,np.newaxis]**2
+    u = -1 - x**2 + y[:,np.newaxis]
+    v = 1 + x - y[:,np.newaxis]**2
     speed = np.sqrt(u*u + v*v)
 
     f, axes = plt.subplots(ncols=2, nrows=2)
@@ -448,7 +447,6 @@ def test():
     X = np.repeat(x.reshape(1, 100), 100, axis=0)
     Y = np.repeat(y.reshape(100, 1), 100, axis=1)
     streamplot(X, Y, u, v, density=(0.5,1), color=u, linewidth=lw, ax=axes[3])
-
 
     plt.show()
 
