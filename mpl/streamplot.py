@@ -94,10 +94,21 @@ def streamplot(x, y, u, v, density=1, linewidth=1,
     INTEGRATOR is experimental. Currently, RK4 should be used.
     """
     ax = ax if ax is not None else plt.gca()
+    if len(x.shape) == 2:
+        x_row = x[0]
+        assert np.allclose(x_row, x)
+        x = x_row
+    else:
+        assert len(x.shape)==1
+
+    if len(y.shape) == 2:
+        y_col = y[:, 0]
+        assert np.allclose(y_col, y.T)
+        y = y_col
+    else:
+        assert len(y.shape)==1
 
     ## Sanity checks.
-    assert len(x.shape)==1
-    assert len(y.shape)==1
     assert u.shape == (len(y), len(x))
     assert v.shape == (len(y), len(x))
     if type(linewidth) == np.ndarray:
@@ -416,11 +427,17 @@ def test():
     v = 1+x-y[:,np.newaxis]**2
     speed = np.sqrt(u*u + v*v)
 
-    f, axes = plt.subplots(ncols=3)
+    f, axes = plt.subplots(ncols=2, nrows=2)
+    axes = axes.ravel()
     streamplot(x, y, u, v, density=1, color='b', ax=axes[0])
     lw = 5*speed/speed.max()
     streamplot(x, y, u, v, density=(1,1), color=u, linewidth=lw, ax=axes[1])
     streamplot(x, y, u, v, density=(1,1), INTEGRATOR='RK45', ax=axes[2])
+    # test x, y matrices
+    X = np.repeat(x.reshape(1, 100), 100, axis=0)
+    Y = np.repeat(y.reshape(100, 1), 100, axis=1)
+    streamplot(X, Y, u, v, density=(0.5,1), color=u, linewidth=lw, ax=axes[3])
+
 
     plt.show()
 
