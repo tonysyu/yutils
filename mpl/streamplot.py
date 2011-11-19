@@ -86,6 +86,30 @@ class Grid(object):
         return self.ny, self.nx
 
 
+class StreamMask(object):
+    """Mask to keep track of discrete regions crossed by streamlines.
+
+    Streamlines are only allowed to pass through zeroed regions. The resolution
+    of this grid determines the approximate spacing between trajectories.
+    """
+
+    def __init__(self, density):
+        if type(density) == float or type(density) == int:
+            assert density > 0
+            self.nx = self.ny = int(30 * density)
+        else:
+            assert len(density) > 0
+            self.nx = int(30 * density[0])
+            self.ny = int(30 * density[1])
+        self._mask = np.zeros((self.ny, self.nx))
+        self.size = max(self.ny, self.nx)
+
+    def __setitem__(self, *args):
+        self._mask.__setitem__(*args)
+
+    def __getitem__(self, *args):
+        return self._mask.__getitem__(*args)
+
 
 def streamplot(x, y, u, v, density=1, linewidth=1, color='k', cmap=None,
                norm=None, vmax=None, vmin=None, arrowsize=1, INTEGRATOR='RK4',
@@ -136,29 +160,15 @@ def streamplot(x, y, u, v, density=1, linewidth=1, color='k', cmap=None,
     v *= grid.ny
     ## Now u and v in grid-coordinates.
 
-    ## Blank array: This is the heart of the algorithm. It begins life
-    ## zeroed, but is set to one when a streamline passes through each
-    ## box. Then streamlines are only allowed to pass through zeroed
-    ## boxes. The lower resolution of this grid determines the
-    ## approximate spacing between trajectories.
-    if type(density) == float or type(density) == int:
-        assert density > 0
-        NBX = int(30 * density)
-        NBY = int(30 * density)
-    else:
-        assert len(density) > 0
-        NBX = int(30 * density[0])
-        NBY = int(30 * density[1])
-    blank = np.zeros((NBY, NBX))
-
+    mask = StreamMask(density)
     ## Constants for conversion between grid-index space and
-    ## blank-index space
-    bx_spacing = grid.nx / float(NBX - 1)
-    by_spacing = grid.ny / float(NBY - 1)
+    ## mask-index space
+    bx_spacing = grid.nx / float(mask.nx - 1)
+    by_spacing = grid.ny / float(mask.ny - 1)
 
-    def blank_pos(xi, yi):
+    def mask_pos(xi, yi):
         ## Takes grid space coords and returns nearest space in
-        ## the blank array.
+        ## the mask array.
         return int((xi / bx_spacing) + 0.5), \
                int((yi / by_spacing) + 0.5)
 
@@ -178,7 +188,7 @@ def streamplot(x, y, u, v, density=1, linewidth=1, color='k', cmap=None,
 
     def rk4_integrate(x0, y0):
         ## This function does RK4 forward and back trajectories from
-        ## the initial conditions, with the odd 'blank array'
+        ## the initial conditions, with the odd 'mask array'
         ## termination conditions. TODO tidy the integration loops.
 
         bx_changes = []
@@ -190,7 +200,7 @@ def streamplot(x, y, u, v, density=1, linewidth=1, color='k', cmap=None,
             stotal = 0
             xi = x0
             yi = y0
-            xb, yb = blank_pos(xi, yi)
+            xb, yb = mask_pos(xi, yi)
             xf_traj = []
             yf_traj = []
 
@@ -215,13 +225,13 @@ def streamplot(x, y, u, v, density=1, linewidth=1, color='k', cmap=None,
                     break
 
                 stotal += ds
-                # Next, if s gets to thres, check blank.
-                new_xb, new_yb = blank_pos(xi, yi)
+                # Next, if s gets to thres, check mask.
+                new_xb, new_yb = mask_pos(xi, yi)
 
                 if new_xb != xb or new_yb != yb:
                     # New square, so check and colour. Quit if required.
-                    if blank[new_yb,new_xb] == 0:
-                        blank[new_yb,new_xb] = 1
+                    if mask[new_yb,new_xb] == 0:
+                        mask[new_yb,new_xb] = 1
                         bx_changes.append(new_xb)
                         by_changes.append(new_yb)
                         xb = new_xb
@@ -247,7 +257,7 @@ def streamplot(x, y, u, v, density=1, linewidth=1, color='k', cmap=None,
             stotal = 0
             xi = x0
             yi = y0
-            xb, yb = blank_pos(xi, yi)
+            xb, yb = mask_pos(xi, yi)
             xf_traj = []
             yf_traj = []
 
@@ -299,12 +309,12 @@ def streamplot(x, y, u, v, density=1, linewidth=1, color='k', cmap=None,
                     if not within_index_grid(xi, yi):
                         break
                     stotal += ds
-                    # Next, if s gets to thres, check blank.
-                    new_xb, new_yb = blank_pos(xi, yi)
+                    # Next, if s gets to thres, check mask.
+                    new_xb, new_yb = mask_pos(xi, yi)
                     if new_xb != xb or new_yb != yb:
                         # New square, so check and colour. Quit if required.
-                        if blank[new_yb,new_xb] == 0:
-                            blank[new_yb,new_xb] = 1
+                        if mask[new_yb,new_xb] == 0:
+                            mask[new_yb,new_xb] = 1
                             bx_changes.append(new_xb)
                             by_changes.append(new_yb)
                             xb = new_xb
@@ -347,38 +357,38 @@ def streamplot(x, y, u, v, density=1, linewidth=1, color='k', cmap=None,
             return None
 
         if stotal > .2:
-            initxb, inityb = blank_pos(x0, y0)
-            blank[inityb, initxb] = 1
+            initxb, inityb = mask_pos(x0, y0)
+            mask[inityb, initxb] = 1
             return x_traj, y_traj
         else:
             # remove short trajectories
             for xb, yb in zip(bx_changes, by_changes):
-                blank[yb, xb] = 0
+                mask[yb, xb] = 0
             return None
 
-    ## A quick function for integrating trajectories if blank==0.
+    ## A quick function for integrating trajectories if mask==0.
     trajectories = []
     def traj(xb, yb):
-        if xb < 0 or xb >= NBX or yb < 0 or yb >= NBY:
+        if xb < 0 or xb >= mask.nx or yb < 0 or yb >= mask.ny:
             return
-        if blank[yb, xb] == 0:
+        if mask[yb, xb] == 0:
             t = rk4_integrate(xb*bx_spacing, yb*by_spacing)
             if t != None:
                 trajectories.append(t)
 
-    blank_grid_size = max(NBX,NBY)
+    mask.size = max(mask.nx, mask.ny)
     ## Now we build up the trajectory set. I've found it best to look
-    ## for blank==0 along the edges first, and work inwards.
-    for indent in range(blank_grid_size / 2):
-        for xi in range(blank_grid_size - 2*indent):
+    ## for mask==0 along the edges first, and work inwards.
+    for indent in range(mask.size / 2):
+        for xi in range(mask.size - 2*indent):
             traj(xi+indent, indent)
-            traj(xi+indent, NBY - 1 - indent)
+            traj(xi+indent, mask.ny - 1 - indent)
             traj(indent, xi+indent)
-            traj(NBX - 1 - indent, xi + indent)
+            traj(mask.nx - 1 - indent, xi + indent)
 
     ## PLOTTING HERE.
-    #plt.pcolormesh(np.linspace(x.min(), x.max(), NBX+1),
-    #                 np.linspace(y.min(), y.max(), NBY+1), blank)
+    #plt.pcolormesh(np.linspace(x.min(), x.max(), mask.nx+1),
+    #                 np.linspace(y.min(), y.max(), mask.ny+1), mask)
 
     # Load up the defaults - needed to get the color right.
     if type(color) == np.ndarray:
