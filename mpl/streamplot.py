@@ -91,6 +91,10 @@ class StreamMask(object):
 
     Streamlines are only allowed to pass through zeroed regions. The resolution
     of this grid determines the approximate spacing between trajectories.
+
+    Before adding a trajectory, run `start_trajectory` to keep track of regions
+    crossed by a given trajectory. Later, if you decide the trajectory is bad
+    (e.g. if the trajectory is very short) just call `undo_trajectory`.
     """
 
     def __init__(self, density):
@@ -105,10 +109,20 @@ class StreamMask(object):
         self.size = max(self.ny, self.nx)
 
     def __setitem__(self, *args):
+        idx, value = args
+        self._traj.append(idx)
         self._mask.__setitem__(*args)
 
     def __getitem__(self, *args):
         return self._mask.__getitem__(*args)
+
+    def start_trajectory(self):
+        # clear any previous trajectories
+        self._traj = []
+
+    def undo_trajectory(self):
+        for t in self._traj:
+            self._mask.__setitem__(t, 0)
 
 
 def streamplot(x, y, u, v, density=1, linewidth=1, color='k', cmap=None,
@@ -190,9 +204,7 @@ def streamplot(x, y, u, v, density=1, linewidth=1, color='k', cmap=None,
         ## This function does RK4 forward and back trajectories from
         ## the initial conditions, with the odd 'mask array'
         ## termination conditions. TODO tidy the integration loops.
-
-        bx_changes = []
-        by_changes = []
+        mask.start_trajectory()
 
         ## Integrator function
         def rk4(x0, y0, f):
@@ -232,8 +244,6 @@ def streamplot(x, y, u, v, density=1, linewidth=1, color='k', cmap=None,
                     # New square, so check and colour. Quit if required.
                     if mask[new_yb,new_xb] == 0:
                         mask[new_yb,new_xb] = 1
-                        bx_changes.append(new_xb)
-                        by_changes.append(new_yb)
                         xb = new_xb
                         yb = new_yb
                     else:
@@ -315,8 +325,6 @@ def streamplot(x, y, u, v, density=1, linewidth=1, color='k', cmap=None,
                         # New square, so check and colour. Quit if required.
                         if mask[new_yb,new_xb] == 0:
                             mask[new_yb,new_xb] = 1
-                            bx_changes.append(new_xb)
-                            by_changes.append(new_yb)
                             xb = new_xb
                             yb = new_yb
                         else:
@@ -361,9 +369,7 @@ def streamplot(x, y, u, v, density=1, linewidth=1, color='k', cmap=None,
             mask[inityb, initxb] = 1
             return x_traj, y_traj
         else:
-            # remove short trajectories
-            for xb, yb in zip(bx_changes, by_changes):
-                mask[yb, xb] = 0
+            mask.undo_trajectory()
             return None
 
     ## A quick function for integrating trajectories if mask==0.
