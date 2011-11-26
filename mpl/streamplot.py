@@ -204,6 +204,79 @@ def streamplot(x, y, u, v, density=1, linewidth=1, color='k', cmap=None,
     if type(color) == np.ndarray:
         assert color.shape == grid.shape
 
+    integrate = get_integrate_function(u, v, grid, mask, dmap, INTEGRATOR)
+    ## A quick function for integrating trajectories if mask==0.
+    trajectories = []
+    def traj(xb, yb):
+        if not mask.valid_index(xb, yb):
+            return
+        if mask[yb, xb] == 0:
+            t = integrate(*dmap.mask2grid(xb, yb))
+            if t != None:
+                trajectories.append(t)
+
+    ## Now we build up the trajectory set. I've found it best to look
+    ## for mask==0 along the edges first, and work inwards.
+    for indent in range(mask.size / 2):
+        for xi in range(mask.size - 2*indent):
+            traj(xi+indent, indent)
+            traj(xi+indent, mask.ny - 1 - indent)
+            traj(indent, xi+indent)
+            traj(mask.nx - 1 - indent, xi + indent)
+
+    # Load up the defaults - needed to get the color right.
+    if type(color) == np.ndarray:
+        if vmin == None: vmin = color.min()
+        if vmax == None: vmax = color.max()
+        if norm == None: norm = matplotlib.colors.normalize
+        if cmap == None: cmap = matplotlib.cm.get_cmap(
+            matplotlib.rcParams['image.cmap'])
+
+    for t in trajectories:
+        # Finally apply the rescale to adjust back to data-coordinates from
+        # grid-coordinates.
+        tx = np.array(t[0]) * grid.dx + grid.x_origin
+        ty = np.array(t[1]) * grid.dy + grid.y_origin
+
+        tgx = np.array(t[0])
+        tgy = np.array(t[1])
+
+        points = np.array([tx, ty]).T.reshape(-1, 1, 2)
+        segments = np.concatenate([points[:-1], points[1:]], axis=1)
+
+        args = {}
+        if type(linewidth) == np.ndarray:
+            args['linewidth'] = value_at(linewidth, tgx, tgy)[:-1]
+            arrowlinewidth = args['linewidth'][len(tgx) / 2]
+        else:
+            args['linewidth'] = linewidth
+            arrowlinewidth = linewidth
+
+        if type(color) == np.ndarray:
+            args['color'] = cmap(norm(vmin=vmin,vmax=vmax)
+                                 (value_at(color, tgx, tgy)[:-1]))
+            arrowcolor = args['color'][len(tgx) / 2]
+        else:
+            args['color'] = color
+            arrowcolor = color
+
+        lc = matplotlib.collections.LineCollection(segments, **args)
+        ax.add_collection(lc)
+
+        ## Add arrows half way along each trajectory.
+        n = len(tx) / 2
+        p = mpp.FancyArrowPatch((tx[n], ty[n]), (tx[n+1], ty[n+1]),
+                                arrowstyle='->', lw=arrowlinewidth,
+                                mutation_scale=20*arrowsize, color=arrowcolor)
+        ax.add_patch(p)
+
+    ax.update_datalim(((x.min(), y.min()), (x.max(), y.max())))
+    ax.autoscale_view(tight=True)
+    return
+
+
+def get_integrate_function(u, v, grid, mask, dmap, INTEGRATOR):
+
     # rescale velocity onto grid-coordinates for integrations.
     u, v = dmap.data2grid(u, v)
 
@@ -394,75 +467,7 @@ def streamplot(x, y, u, v, density=1, linewidth=1, color='k', cmap=None,
         else:
             mask.undo_trajectory()
             return None
-
-    ## A quick function for integrating trajectories if mask==0.
-    trajectories = []
-    def traj(xb, yb):
-        if not mask.valid_index(xb, yb):
-            return
-        if mask[yb, xb] == 0:
-            t = rk4_integrate(*dmap.mask2grid(xb, yb))
-            if t != None:
-                trajectories.append(t)
-
-    ## Now we build up the trajectory set. I've found it best to look
-    ## for mask==0 along the edges first, and work inwards.
-    for indent in range(mask.size / 2):
-        for xi in range(mask.size - 2*indent):
-            traj(xi+indent, indent)
-            traj(xi+indent, mask.ny - 1 - indent)
-            traj(indent, xi+indent)
-            traj(mask.nx - 1 - indent, xi + indent)
-
-    # Load up the defaults - needed to get the color right.
-    if type(color) == np.ndarray:
-        if vmin == None: vmin = color.min()
-        if vmax == None: vmax = color.max()
-        if norm == None: norm = matplotlib.colors.normalize
-        if cmap == None: cmap = matplotlib.cm.get_cmap(
-            matplotlib.rcParams['image.cmap'])
-
-    for t in trajectories:
-        # Finally apply the rescale to adjust back to data-coordinates from
-        # grid-coordinates.
-        tx = np.array(t[0]) * grid.dx + grid.x_origin
-        ty = np.array(t[1]) * grid.dy + grid.y_origin
-
-        tgx = np.array(t[0])
-        tgy = np.array(t[1])
-
-        points = np.array([tx, ty]).T.reshape(-1, 1, 2)
-        segments = np.concatenate([points[:-1], points[1:]], axis=1)
-
-        args = {}
-        if type(linewidth) == np.ndarray:
-            args['linewidth'] = value_at(linewidth, tgx, tgy)[:-1]
-            arrowlinewidth = args['linewidth'][len(tgx) / 2]
-        else:
-            args['linewidth'] = linewidth
-            arrowlinewidth = linewidth
-
-        if type(color) == np.ndarray:
-            args['color'] = cmap(norm(vmin=vmin,vmax=vmax)
-                                 (value_at(color, tgx, tgy)[:-1]))
-            arrowcolor = args['color'][len(tgx) / 2]
-        else:
-            args['color'] = color
-            arrowcolor = color
-
-        lc = matplotlib.collections.LineCollection(segments, **args)
-        ax.add_collection(lc)
-
-        ## Add arrows half way along each trajectory.
-        n = len(tx) / 2
-        p = mpp.FancyArrowPatch((tx[n], ty[n]), (tx[n+1], ty[n+1]),
-                                arrowstyle='->', lw=arrowlinewidth,
-                                mutation_scale=20*arrowsize, color=arrowcolor)
-        ax.add_patch(p)
-
-    ax.update_datalim(((x.min(), y.min()), (x.max(), y.max())))
-    ax.autoscale_view(tight=True)
-    return
+    return rk4_integrate
 
 
 def test():
