@@ -151,9 +151,15 @@ def streamplot(x, y, u, v, density=1, linewidth=1, color='k', cmap=None,
 
     INTEGRATOR is experimental. Currently, RK4 should be used.
     """
+    # Coordinate definitions:
+    # * axes-coordinates goes from 0 to 1 in the domain
+    # * data-coordinates are specified by the input x-y coordinates
+    # * grid-coordinates goes from 0 to N and 0 to M for an N x M grid
+    # * mask-coordinates goes from 0 to N and 0 to M for an N x M mask
     ax = ax if ax is not None else plt.gca()
 
     grid = Grid(x, y)
+    mask = StreamMask(density)
 
     ## Sanity checks.
     assert u.shape == grid.shape
@@ -163,26 +169,21 @@ def streamplot(x, y, u, v, density=1, linewidth=1, color='k', cmap=None,
     if type(color) == np.ndarray:
         assert color.shape == grid.shape
 
-
     ## Now rescale velocity onto axes-coordinates
     u = u / grid.width
     v = v / grid.height
     speed = np.sqrt(u*u+v*v)
-    ## s (path length) will now be in axes-coordinates, but we must
-    ## rescale u for integrations.
+    ## speed (path length) will now be in axes-coordinates, but we must
+    ## rescale u/v to grid-coordinates for integrations.
     u *= grid.nx
     v *= grid.ny
-    ## Now u and v in grid-coordinates.
 
-    mask = StreamMask(density)
-    ## Constants for conversion between grid-index space and
-    ## mask-index space
+    ## Constants for conversion between grid-coordinates and mask-coordinates
     bx_spacing = grid.nx / float(mask.nx - 1)
     by_spacing = grid.ny / float(mask.ny - 1)
 
     def mask_pos(xi, yi):
-        ## Takes grid space coords and returns nearest space in
-        ## the mask array.
+        ## Takes grid-coords and returns nearest space in mask-coords
         return int((xi / bx_spacing) + 0.5), \
                int((yi / by_spacing) + 0.5)
 
@@ -404,8 +405,8 @@ def streamplot(x, y, u, v, density=1, linewidth=1, color='k', cmap=None,
             matplotlib.rcParams['image.cmap'])
 
     for t in trajectories:
-        # Finally apply the rescale to adjust back to user-coords from
-        # grid-index coordinates.
+        # Finally apply the rescale to adjust back to data-coordinates from
+        # grid-coordinates.
         tx = np.array(t[0]) * grid.dx + grid.x_origin
         ty = np.array(t[1]) * grid.dy + grid.y_origin
 
