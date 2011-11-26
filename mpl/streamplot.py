@@ -144,6 +144,9 @@ class DomainMap(object):
         self.x_mask2grid = 1. / self.x_grid2mask
         self.y_mask2grid = 1. / self.y_grid2mask
 
+        self.x_data2grid = grid.nx / grid.width
+        self.y_data2grid = grid.ny / grid.height
+
     def grid2mask(self, xi, yi):
         ## Takes grid-coords and returns nearest space in mask-coords
         return int((xi * self.x_grid2mask) + 0.5), \
@@ -151,6 +154,9 @@ class DomainMap(object):
 
     def mask2grid(self, xm, ym):
         return xm * self.x_mask2grid, ym * self.y_mask2grid
+
+    def data2grid(self, xd, yd):
+        return xd * self.x_data2grid, yd * self.y_data2grid
 
 
 def streamplot(x, y, u, v, density=1, linewidth=1, color='k', cmap=None,
@@ -188,6 +194,7 @@ def streamplot(x, y, u, v, density=1, linewidth=1, color='k', cmap=None,
 
     grid = Grid(x, y)
     mask = StreamMask(density)
+    dmap = DomainMap(grid, mask)
 
     ## Sanity checks.
     assert u.shape == grid.shape
@@ -197,16 +204,13 @@ def streamplot(x, y, u, v, density=1, linewidth=1, color='k', cmap=None,
     if type(color) == np.ndarray:
         assert color.shape == grid.shape
 
-    ## Now rescale velocity onto axes-coordinates
-    u = u / grid.width
-    v = v / grid.height
-    speed = np.sqrt(u*u+v*v)
-    ## speed (path length) will now be in axes-coordinates, but we must
-    ## rescale u/v to grid-coordinates for integrations.
-    u *= grid.nx
-    v *= grid.ny
+    # rescale velocity onto grid-coordinates for integrations.
+    u, v = dmap.data2grid(u, v)
 
-    dmap = DomainMap(grid, mask)
+    # speed (path length) will be in axes-coordinates
+    u_ax = u / grid.nx
+    v_ax = v / grid.nx
+    speed = np.sqrt(u_ax**2 + v_ax**2)
 
     def forward_time(xi, yi):
         ds_dt = value_at(speed, xi, yi)
