@@ -85,6 +85,10 @@ class Grid(object):
     def shape(self):
         return self.ny, self.nx
 
+    def is_inside_grid(self, xi, yi):
+        """Return True if point is inside of grid-coordinates."""
+        return xi >= 0 and xi < self.nx and yi >= 0 and yi < self.ny
+
 
 class StreamMask(object):
     """Mask to keep track of discrete regions crossed by streamlines.
@@ -212,9 +216,6 @@ def streamplot(x, y, u, v, density=1, linewidth=1, color='k', cmap=None,
         dxi, dyi = forward_time(xi, yi)
         return -dxi, -dyi
 
-    def within_index_grid(xi, yi):
-        return xi >= 0 and xi < grid.nx and yi >= 0 and yi < grid.ny
-
     def rk4_integrate(x0, y0):
         ## This function does RK4 forward and back trajectories from
         ## the initial conditions, with the odd 'mask array'
@@ -231,7 +232,7 @@ def streamplot(x, y, u, v, density=1, linewidth=1, color='k', cmap=None,
             xf_traj = []
             yf_traj = []
 
-            while within_index_grid(xi, yi):
+            while grid.is_inside_grid(xi, yi):
                 # Time step. First save the point.
                 xf_traj.append(xi)
                 yf_traj.append(yi)
@@ -248,7 +249,7 @@ def streamplot(x, y, u, v, density=1, linewidth=1, color='k', cmap=None,
                 yi += ds*(k1y+2*k2y+2*k3y+k4y) / 6.
                 # Final position might be out of the domain
 
-                if not within_index_grid(xi, yi):
+                if not grid.is_inside_grid(xi, yi):
                     break
 
                 stotal += ds
@@ -286,7 +287,7 @@ def streamplot(x, y, u, v, density=1, linewidth=1, color='k', cmap=None,
             xf_traj = []
             yf_traj = []
 
-            while within_index_grid(xi, yi):
+            while grid.is_inside_grid(xi, yi):
                 # Time step. First save the point.
                 xf_traj.append(xi)
                 yf_traj.append(yi)
@@ -331,7 +332,7 @@ def streamplot(x, y, u, v, density=1, linewidth=1, color='k', cmap=None,
                     xi += dx5
                     yi += dy5
                     # Final position might be out of the domain
-                    if not within_index_grid(xi, yi):
+                    if not grid.is_inside_grid(xi, yi):
                         break
                     stotal += ds
                     # Next, if s gets to thres, check mask.
@@ -460,6 +461,7 @@ def streamplot(x, y, u, v, density=1, linewidth=1, color='k', cmap=None,
     ax.autoscale_view(tight=True)
     return
 
+
 def test():
     x = np.linspace(-3,3,100)
     y = np.linspace(-3,3,100)
@@ -479,6 +481,7 @@ def test():
     streamplot(X, Y, u, v, density=(0.5,1), color=u, linewidth=lw, ax=axes[3])
 
     plt.show()
+
 
 if __name__ == '__main__':
     test()
