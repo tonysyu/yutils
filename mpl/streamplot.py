@@ -128,6 +128,10 @@ class StreamMask(object):
         for t in self._traj:
             self._mask.__setitem__(t, 0)
 
+    def is_inside(self, x, y):
+        """Return True if point is inside of mask-coordinates."""
+        return x >= 0 and x < self.nx and y >= 0 and y < self.ny
+
 
 class DomainMap(object):
     """Map representing different coordinate systems"""
@@ -391,7 +395,7 @@ def streamplot(x, y, u, v, density=1, linewidth=1, color='k', cmap=None,
     ## A quick function for integrating trajectories if mask==0.
     trajectories = []
     def traj(xb, yb):
-        if xb < 0 or xb >= mask.nx or yb < 0 or yb >= mask.ny:
+        if not mask.is_inside(xb, yb):
             return
         if mask[yb, xb] == 0:
             t = rk4_integrate(*dmap.mask2grid(xb, yb))
