@@ -85,8 +85,8 @@ class Grid(object):
     def shape(self):
         return self.ny, self.nx
 
-    def is_inside_grid(self, xi, yi):
-        """Return True if point is inside of grid-coordinates."""
+    def valid_index(self, xi, yi):
+        """Return True if point is a valid index of grid."""
         return xi >= 0 and xi < self.nx and yi >= 0 and yi < self.ny
 
 
@@ -128,8 +128,8 @@ class StreamMask(object):
         for t in self._traj:
             self._mask.__setitem__(t, 0)
 
-    def is_inside(self, x, y):
-        """Return True if point is inside of mask-coordinates."""
+    def valid_index(self, x, y):
+        """Return True if point is a valid index of mask."""
         return x >= 0 and x < self.nx and y >= 0 and y < self.ny
 
 
@@ -151,7 +151,6 @@ class DomainMap(object):
 
     def mask2grid(self, xm, ym):
         return xm * self.x_mask2grid, ym * self.y_mask2grid
-
 
 
 def streamplot(x, y, u, v, density=1, linewidth=1, color='k', cmap=None,
@@ -236,7 +235,7 @@ def streamplot(x, y, u, v, density=1, linewidth=1, color='k', cmap=None,
             xf_traj = []
             yf_traj = []
 
-            while grid.is_inside_grid(xi, yi):
+            while grid.valid_index(xi, yi):
                 # Time step. First save the point.
                 xf_traj.append(xi)
                 yf_traj.append(yi)
@@ -253,7 +252,7 @@ def streamplot(x, y, u, v, density=1, linewidth=1, color='k', cmap=None,
                 yi += ds*(k1y+2*k2y+2*k3y+k4y) / 6.
                 # Final position might be out of the domain
 
-                if not grid.is_inside_grid(xi, yi):
+                if not grid.valid_index(xi, yi):
                     break
 
                 stotal += ds
@@ -291,7 +290,7 @@ def streamplot(x, y, u, v, density=1, linewidth=1, color='k', cmap=None,
             xf_traj = []
             yf_traj = []
 
-            while grid.is_inside_grid(xi, yi):
+            while grid.valid_index(xi, yi):
                 # Time step. First save the point.
                 xf_traj.append(xi)
                 yf_traj.append(yi)
@@ -336,7 +335,7 @@ def streamplot(x, y, u, v, density=1, linewidth=1, color='k', cmap=None,
                     xi += dx5
                     yi += dy5
                     # Final position might be out of the domain
-                    if not grid.is_inside_grid(xi, yi):
+                    if not grid.valid_index(xi, yi):
                         break
                     stotal += ds
                     # Next, if s gets to thres, check mask.
@@ -395,7 +394,7 @@ def streamplot(x, y, u, v, density=1, linewidth=1, color='k', cmap=None,
     ## A quick function for integrating trajectories if mask==0.
     trajectories = []
     def traj(xb, yb):
-        if not mask.is_inside(xb, yb):
+        if not mask.valid_index(xb, yb):
             return
         if mask[yb, xb] == 0:
             t = rk4_integrate(*dmap.mask2grid(xb, yb))
