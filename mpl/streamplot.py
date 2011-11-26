@@ -207,11 +207,11 @@ def streamplot(x, y, u, v, density=1, linewidth=1, color='k', cmap=None,
     integrate = get_integrate_function(u, v, grid, mask, dmap, INTEGRATOR)
     ## A quick function for integrating trajectories if mask==0.
     trajectories = []
-    def traj(xb, yb):
-        if not mask.valid_index(xb, yb):
+    def traj(xm, ym):
+        if not mask.valid_index(xm, ym):
             return
-        if mask[yb, xb] == 0:
-            t = integrate(*dmap.mask2grid(xb, yb))
+        if mask[ym, xm] == 0:
+            t = integrate(*dmap.mask2grid(xm, ym))
             if t != None:
                 trajectories.append(t)
 
@@ -308,7 +308,7 @@ def get_integrate_function(u, v, grid, mask, dmap, INTEGRATOR):
             stotal = 0
             xi = x0
             yi = y0
-            xb, yb = dmap.grid2mask(xi, yi)
+            xm, ym = dmap.grid2mask(xi, yi)
             xf_traj = []
             yf_traj = []
 
@@ -334,14 +334,14 @@ def get_integrate_function(u, v, grid, mask, dmap, INTEGRATOR):
 
                 stotal += ds
                 # Next, if s gets to thres, check mask.
-                new_xb, new_yb = dmap.grid2mask(xi, yi)
+                new_xm, new_ym = dmap.grid2mask(xi, yi)
 
-                if new_xb != xb or new_yb != yb:
+                if new_xm != xm or new_ym != ym:
                     # New square, so check and colour. Quit if required.
-                    if mask[new_yb,new_xb] == 0:
-                        mask[new_yb,new_xb] = 1
-                        xb = new_xb
-                        yb = new_yb
+                    if mask[new_ym,new_xm] == 0:
+                        mask[new_ym,new_xm] = 1
+                        xm = new_xm
+                        ym = new_ym
                     else:
                         break
                 if stotal > 2:
@@ -363,7 +363,7 @@ def get_integrate_function(u, v, grid, mask, dmap, INTEGRATOR):
             stotal = 0
             xi = x0
             yi = y0
-            xb, yb = dmap.grid2mask(xi, yi)
+            xm, ym = dmap.grid2mask(xi, yi)
             xf_traj = []
             yf_traj = []
 
@@ -416,13 +416,13 @@ def get_integrate_function(u, v, grid, mask, dmap, INTEGRATOR):
                         break
                     stotal += ds
                     # Next, if s gets to thres, check mask.
-                    new_xb, new_yb = dmap.grid2mask(xi, yi)
-                    if new_xb != xb or new_yb != yb:
+                    new_xm, new_ym = dmap.grid2mask(xi, yi)
+                    if new_xm != xm or new_ym != ym:
                         # New square, so check and colour. Quit if required.
-                        if mask[new_yb,new_xb] == 0:
-                            mask[new_yb,new_xb] = 1
-                            xb = new_xb
-                            yb = new_yb
+                        if mask[new_ym,new_xm] == 0:
+                            mask[new_ym,new_xm] = 1
+                            xm = new_xm
+                            ym = new_ym
                         else:
                             break
                     if stotal > 2:
