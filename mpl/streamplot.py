@@ -382,7 +382,6 @@ def streamplot(x, y, u, v, density=1, linewidth=1, color='k', cmap=None,
             if t != None:
                 trajectories.append(t)
 
-    mask.size = max(mask.nx, mask.ny)
     ## Now we build up the trajectory set. I've found it best to look
     ## for mask==0 along the edges first, and work inwards.
     for indent in range(mask.size / 2):
