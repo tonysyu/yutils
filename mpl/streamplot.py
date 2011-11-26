@@ -410,10 +410,6 @@ def streamplot(x, y, u, v, density=1, linewidth=1, color='k', cmap=None,
             traj(indent, xi+indent)
             traj(mask.nx - 1 - indent, xi + indent)
 
-    ## PLOTTING HERE.
-    #plt.pcolormesh(np.linspace(x.min(), x.max(), mask.nx+1),
-    #                 np.linspace(y.min(), y.max(), mask.ny+1), mask)
-
     # Load up the defaults - needed to get the color right.
     if type(color) == np.ndarray:
         if vmin == None: vmin = color.min()
