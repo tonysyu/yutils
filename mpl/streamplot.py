@@ -213,7 +213,7 @@ def streamplot(x, y, u, v, density=1, linewidth=1, color='k', cmap=None,
         return -dxi, -dyi
 
     def within_index_grid(xi, yi):
-        return xi >= 0 and xi < (grid.nx - 1) and yi >= 0 and yi < (grid.ny - 1)
+        return xi >= 0 and xi < grid.nx and yi >= 0 and yi < grid.ny
 
     def rk4_integrate(x0, y0):
         ## This function does RK4 forward and back trajectories from
