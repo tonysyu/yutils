@@ -125,6 +125,27 @@ class StreamMask(object):
             self._mask.__setitem__(t, 0)
 
 
+class DomainMap(object):
+    """Map representing different coordinate systems"""
+
+    def __init__(self, grid, mask):
+        ## Constants for conversion between grid-coordinates and mask-coordinates
+        self.x_grid2mask = float(mask.nx - 1) / grid.nx
+        self.y_grid2mask = float(mask.ny - 1) / grid.ny
+
+        self.x_mask2grid = 1. / self.x_grid2mask
+        self.y_mask2grid = 1. / self.y_grid2mask
+
+    def grid2mask(self, xi, yi):
+        ## Takes grid-coords and returns nearest space in mask-coords
+        return int((xi * self.x_grid2mask) + 0.5), \
+               int((yi * self.y_grid2mask) + 0.5)
+
+    def mask2grid(self, xm, ym):
+        return xm * self.x_mask2grid, ym * self.y_mask2grid
+
+
+
 def streamplot(x, y, u, v, density=1, linewidth=1, color='k', cmap=None,
                norm=None, vmax=None, vmin=None, arrowsize=1, INTEGRATOR='RK4',
                ax=None):
@@ -178,14 +199,7 @@ def streamplot(x, y, u, v, density=1, linewidth=1, color='k', cmap=None,
     u *= grid.nx
     v *= grid.ny
 
-    ## Constants for conversion between grid-coordinates and mask-coordinates
-    bx_spacing = grid.nx / float(mask.nx - 1)
-    by_spacing = grid.ny / float(mask.ny - 1)
-
-    def mask_pos(xi, yi):
-        ## Takes grid-coords and returns nearest space in mask-coords
-        return int((xi / bx_spacing) + 0.5), \
-               int((yi / by_spacing) + 0.5)
+    dmap = DomainMap(grid, mask)
 
     def forward_time(xi, yi):
         ds_dt = value_at(speed, xi, yi)
@@ -213,7 +227,7 @@ def streamplot(x, y, u, v, density=1, linewidth=1, color='k', cmap=None,
             stotal = 0
             xi = x0
             yi = y0
-            xb, yb = mask_pos(xi, yi)
+            xb, yb = dmap.grid2mask(xi, yi)
             xf_traj = []
             yf_traj = []
 
@@ -239,7 +253,7 @@ def streamplot(x, y, u, v, density=1, linewidth=1, color='k', cmap=None,
 
                 stotal += ds
                 # Next, if s gets to thres, check mask.
-                new_xb, new_yb = mask_pos(xi, yi)
+                new_xb, new_yb = dmap.grid2mask(xi, yi)
 
                 if new_xb != xb or new_yb != yb:
                     # New square, so check and colour. Quit if required.
@@ -268,7 +282,7 @@ def streamplot(x, y, u, v, density=1, linewidth=1, color='k', cmap=None,
             stotal = 0
             xi = x0
             yi = y0
-            xb, yb = mask_pos(xi, yi)
+            xb, yb = dmap.grid2mask(xi, yi)
             xf_traj = []
             yf_traj = []
 
@@ -321,7 +335,7 @@ def streamplot(x, y, u, v, density=1, linewidth=1, color='k', cmap=None,
                         break
                     stotal += ds
                     # Next, if s gets to thres, check mask.
-                    new_xb, new_yb = mask_pos(xi, yi)
+                    new_xb, new_yb = dmap.grid2mask(xi, yi)
                     if new_xb != xb or new_yb != yb:
                         # New square, so check and colour. Quit if required.
                         if mask[new_yb,new_xb] == 0:
@@ -366,7 +380,7 @@ def streamplot(x, y, u, v, density=1, linewidth=1, color='k', cmap=None,
             return None
 
         if stotal > .2:
-            initxb, inityb = mask_pos(x0, y0)
+            initxb, inityb = dmap.grid2mask(x0, y0)
             mask[inityb, initxb] = 1
             return x_traj, y_traj
         else:
@@ -379,7 +393,7 @@ def streamplot(x, y, u, v, density=1, linewidth=1, color='k', cmap=None,
         if xb < 0 or xb >= mask.nx or yb < 0 or yb >= mask.ny:
             return
         if mask[yb, xb] == 0:
-            t = rk4_integrate(xb*bx_spacing, yb*by_spacing)
+            t = rk4_integrate(*dmap.mask2grid(xb, yb))
             if t != None:
                 trajectories.append(t)
 
