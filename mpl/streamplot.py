@@ -19,7 +19,11 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
+
 """
+#TODO: combine x-y variables into a point variable
+#TODO: fix _gen_starting_points for non-square masks
+#TODO: simplify integration loops
 
 version = '4'
 
@@ -137,10 +141,12 @@ class DomainMap(object):
     """Map representing different coordinate systems.
 
     Coordinate definitions:
+
     * axes-coordinates goes from 0 to 1 in the domain
     * data-coordinates are specified by the input x-y coordinates
     * grid-coordinates goes from 0 to N and 0 to M for an N x M grid
     * mask-coordinates goes from 0 to N and 0 to M for an N x M mask
+
     """
 
     def __init__(self, grid, mask):
@@ -302,7 +308,7 @@ def get_integrate_function(u, v, grid, mask, dmap, INTEGRATOR):
     def rk4_integrate(x0, y0):
         ## This function does RK4 forward and back trajectories from
         ## the initial conditions, with the odd 'mask array'
-        ## termination conditions. TODO tidy the integration loops.
+        ## termination conditions.
         mask.start_trajectory()
 
         ## Integrator function
