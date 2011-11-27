@@ -159,16 +159,6 @@ class DomainMap(object):
         return xd * self.x_data2grid, yd * self.y_data2grid
 
 
-def _gen_starting_points(mask):
-    for indent in range(mask.size / 2):
-        for k in range(mask.size - 2*indent):
-            k0 = k+indent
-            x = [k0, k0, indent, mask.nx-1-indent]
-            y = [indent, mask.ny-1-indent, k0, k0]
-            for xi, yi in zip(x, y):
-                yield xi, yi
-
-
 def streamplot(x, y, u, v, density=1, linewidth=1, color='k', cmap=None,
                norm=None, vmax=None, vmin=None, arrowsize=1, INTEGRATOR='RK4',
                ax=None):
@@ -274,6 +264,16 @@ def streamplot(x, y, u, v, density=1, linewidth=1, color='k', cmap=None,
     ax.update_datalim(((x.min(), y.min()), (x.max(), y.max())))
     ax.autoscale_view(tight=True)
     return
+
+
+def _gen_starting_points(mask):
+    for indent in range(mask.size / 2):
+        for k in range(mask.size - 2*indent):
+            k0 = k+indent
+            x = [k0, k0, indent, mask.nx-1-indent]
+            y = [indent, mask.ny-1-indent, k0, k0]
+            for xi, yi in zip(x, y):
+                yield xi, yi
 
 
 def get_integrate_function(u, v, grid, mask, dmap, INTEGRATOR):
