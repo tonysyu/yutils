@@ -215,18 +215,16 @@ def streamplot(x, y, u, v, density=1, linewidth=1, color='k', cmap=None,
         assert color.shape == grid.shape
 
     integrate = get_integrate_function(u, v, grid, mask, dmap, INTEGRATOR)
+
     ## A quick function for integrating trajectories if mask==0.
     trajectories = []
-    def traj(xm, ym):
+    for xm, ym in _gen_starting_points(mask):
         if not mask.valid_index(xm, ym):
-            return
+            continue
         if mask[ym, xm] == 0:
             t = integrate(*dmap.mask2grid(xm, ym))
             if t != None:
                 trajectories.append(t)
-
-    for xi, yi in _gen_starting_points(mask):
-        traj(xi, yi)
 
     # Load up the defaults - needed to get the color right.
     if type(color) == np.ndarray:
