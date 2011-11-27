@@ -159,6 +159,16 @@ class DomainMap(object):
         return xd * self.x_data2grid, yd * self.y_data2grid
 
 
+def _gen_starting_points(mask):
+    for indent in range(mask.size / 2):
+        for k in range(mask.size - 2*indent):
+            k0 = k+indent
+            x = [k0, k0, indent, mask.nx-1-indent]
+            y = [indent, mask.ny-1-indent, k0, k0]
+            for xi, yi in zip(x, y):
+                yield xi, yi
+
+
 def streamplot(x, y, u, v, density=1, linewidth=1, color='k', cmap=None,
                norm=None, vmax=None, vmin=None, arrowsize=1, INTEGRATOR='RK4',
                ax=None):
@@ -215,14 +225,8 @@ def streamplot(x, y, u, v, density=1, linewidth=1, color='k', cmap=None,
             if t != None:
                 trajectories.append(t)
 
-    ## Now we build up the trajectory set. I've found it best to look
-    ## for mask==0 along the edges first, and work inwards.
-    for indent in range(mask.size / 2):
-        for xi in range(mask.size - 2*indent):
-            traj(xi+indent, indent)
-            traj(xi+indent, mask.ny - 1 - indent)
-            traj(indent, xi+indent)
-            traj(mask.nx - 1 - indent, xi + indent)
+    for xi, yi in _gen_starting_points(mask):
+        traj(xi, yi)
 
     # Load up the defaults - needed to get the color right.
     if type(color) == np.ndarray:
