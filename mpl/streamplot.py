@@ -134,7 +134,14 @@ class StreamMask(object):
 
 
 class DomainMap(object):
-    """Map representing different coordinate systems"""
+    """Map representing different coordinate systems.
+
+    Coordinate definitions:
+    * axes-coordinates goes from 0 to 1 in the domain
+    * data-coordinates are specified by the input x-y coordinates
+    * grid-coordinates goes from 0 to N and 0 to M for an N x M grid
+    * mask-coordinates goes from 0 to N and 0 to M for an N x M mask
+    """
 
     def __init__(self, grid, mask):
         ## Constants for conversion between grid-coordinates and mask-coordinates
@@ -185,11 +192,6 @@ def streamplot(x, y, u, v, density=1, linewidth=1, color='k', cmap=None,
 
     INTEGRATOR is experimental. Currently, RK4 should be used.
     """
-    # Coordinate definitions:
-    # * axes-coordinates goes from 0 to 1 in the domain
-    # * data-coordinates are specified by the input x-y coordinates
-    # * grid-coordinates goes from 0 to N and 0 to M for an N x M grid
-    # * mask-coordinates goes from 0 to N and 0 to M for an N x M mask
     ax = ax if ax is not None else plt.gca()
 
     grid = Grid(x, y)
