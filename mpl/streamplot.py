@@ -36,9 +36,8 @@ import matplotlib.patches as mpp
 __all__ = ['streamplot']
 
 
-def value_at(a, xi, yi):
-    ## Linear interpolation - nice and quick because we are
-    ## working in grid-index coordinates.
+def interpgrid(a, xi, yi):
+    """Fast 2D, linear interpolation on an integer grid"""
     if type(xi) == np.ndarray:
         x = xi.astype(np.int)
         y = yi.astype(np.int)
@@ -238,7 +237,7 @@ def streamplot(x, y, u, v, density=1, linewidth=1, color='k', cmap=None,
 
         args = {}
         if type(linewidth) == np.ndarray:
-            args['linewidth'] = value_at(linewidth, tgx, tgy)[:-1]
+            args['linewidth'] = interpgrid(linewidth, tgx, tgy)[:-1]
             arrowlinewidth = args['linewidth'][len(tgx) / 2]
         else:
             args['linewidth'] = linewidth
@@ -246,7 +245,7 @@ def streamplot(x, y, u, v, density=1, linewidth=1, color='k', cmap=None,
 
         if type(color) == np.ndarray:
             args['color'] = cmap(norm(vmin=vmin,vmax=vmax)
-                                 (value_at(color, tgx, tgy)[:-1]))
+                                 (interpgrid(color, tgx, tgy)[:-1]))
             arrowcolor = args['color'][len(tgx) / 2]
         else:
             args['color'] = color
@@ -295,10 +294,10 @@ def get_integrate_function(u, v, grid, mask, dmap, INTEGRATOR):
     speed = np.sqrt(u_ax**2 + v_ax**2)
 
     def forward_time(xi, yi):
-        ds_dt = value_at(speed, xi, yi)
+        ds_dt = interpgrid(speed, xi, yi)
         dt_ds = 0 if ds_dt == 0 else 1. / ds_dt
-        ui = value_at(u, xi, yi)
-        vi = value_at(v, xi, yi)
+        ui = interpgrid(u, xi, yi)
+        vi = interpgrid(v, xi, yi)
         return ui * dt_ds, vi * dt_ds
 
     def backward_time(xi, yi):
