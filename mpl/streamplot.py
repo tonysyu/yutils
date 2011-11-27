@@ -36,25 +36,6 @@ import matplotlib.patches as mpp
 __all__ = ['streamplot']
 
 
-def interpgrid(a, xi, yi):
-    """Fast 2D, linear interpolation on an integer grid"""
-    if type(xi) == np.ndarray:
-        x = xi.astype(np.int)
-        y = yi.astype(np.int)
-    else:
-        x = np.int(xi)
-        y = np.int(yi)
-    a00 = a[y, x]
-    a01 = a[y, x + 1]
-    a10 = a[y + 1, x]
-    a11 = a[y + 1, x + 1]
-    xt = xi - x
-    yt = yi - y
-    a0 = a00 * (1 - xt) + a01 * xt
-    a1 = a10 * (1 - xt) + a11 * xt
-    return a0 * (1 - yt) + a1 * yt
-
-
 class Grid(object):
     def __init__(self, x, y):
 
@@ -271,6 +252,25 @@ def streamplot(x, y, u, v, density=1, linewidth=1, color='k', cmap=None,
     ax.update_datalim(((x.min(), y.min()), (x.max(), y.max())))
     ax.autoscale_view(tight=True)
     return
+
+
+def interpgrid(a, xi, yi):
+    """Fast 2D, linear interpolation on an integer grid"""
+    if type(xi) == np.ndarray:
+        x = xi.astype(np.int)
+        y = yi.astype(np.int)
+    else:
+        x = np.int(xi)
+        y = np.int(yi)
+    a00 = a[y, x]
+    a01 = a[y, x + 1]
+    a10 = a[y + 1, x]
+    a11 = a[y + 1, x + 1]
+    xt = xi - x
+    yt = yi - y
+    a0 = a00 * (1 - xt) + a01 * xt
+    a1 = a10 * (1 - xt) + a11 * xt
+    return a0 * (1 - yt) + a1 * yt
 
 
 def _gen_starting_points(mask):
