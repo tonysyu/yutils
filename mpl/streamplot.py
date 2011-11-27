@@ -235,16 +235,8 @@ def streamplot(x, y, u, v, density=1, linewidth=1, color='k', cmap=None,
             matplotlib.rcParams['image.cmap'])
 
     for t in trajectories:
-        # Finally apply the rescale to adjust back to data-coordinates from
-        # grid-coordinates.
-        tx = np.array(t[0]) * grid.dx + grid.x_origin
-        ty = np.array(t[1]) * grid.dy + grid.y_origin
-
         tgx = np.array(t[0])
         tgy = np.array(t[1])
-
-        points = np.transpose([tx, ty]).reshape(-1, 1, 2)
-        segments = np.concatenate([points[:-1], points[1:]], axis=1)
 
         args = {}
         if type(linewidth) == np.ndarray:
@@ -261,6 +253,13 @@ def streamplot(x, y, u, v, density=1, linewidth=1, color='k', cmap=None,
         else:
             args['color'] = color
             arrowcolor = color
+
+        # Rescale from grid-coordinates to data-coordinates.
+        tx = np.array(t[0]) * grid.dx + grid.x_origin
+        ty = np.array(t[1]) * grid.dy + grid.y_origin
+
+        points = np.transpose([tx, ty]).reshape(-1, 1, 2)
+        segments = np.concatenate([points[:-1], points[1:]], axis=1)
 
         lc = matplotlib.collections.LineCollection(segments, **args)
         ax.add_collection(lc)
