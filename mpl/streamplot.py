@@ -243,7 +243,7 @@ def streamplot(x, y, u, v, density=1, linewidth=1, color='k', cmap=None,
         tgx = np.array(t[0])
         tgy = np.array(t[1])
 
-        points = np.array([tx, ty]).T.reshape(-1, 1, 2)
+        points = np.transpose([tx, ty]).reshape(-1, 1, 2)
         segments = np.concatenate([points[:-1], points[1:]], axis=1)
 
         args = {}
