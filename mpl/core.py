@@ -1,3 +1,5 @@
+import warnings
+
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -6,12 +8,12 @@ __all__ = ['clear_frame', 'fill_between', 'figimage']
 
 
 def clear_frame(ax=None):
+    msg = ("clear_frame deprecated."
+           "Use `ax.set_axis_off()` or `plt.axis('off')` instead")
+    warnings.warn(DeprecationWarning(msg))
     if ax is None:
         ax = plt.gca()
-    ax.xaxis.set_visible(False)
-    ax.yaxis.set_visible(False)
-    for spine in ax.spines.itervalues():
-        spine.set_visible(False)
+    ax.set_axis_off()
 
 
 def fill_between(x, y1, y2=0, ax=None, **kwargs):
