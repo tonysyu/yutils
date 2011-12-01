@@ -19,7 +19,11 @@ def pts2data_transform(ax):
 
 
 class CircleCollection(collections.CircleCollection):
-    """Circle Collection with transform that is in data coordinates"""
+    """Circle Collection with transform that is in data coordinates.
+
+    Unlike matplotlib's CircleCollection, the sizes passed to CircleCollection
+    are radii, not areas.
+    """
 
     def __init__(self, radii, transOffset=None, **kwargs):
         assert transOffset is None, ("transOffset is automatically set when "
@@ -42,15 +46,46 @@ class CircleCollection(collections.CircleCollection):
         return pts2data_transform(self.axes)
 
 
+class SquareCollection(collections.RegularPolyCollection):
+    """Square Collection with transform that is in data coordinates.
+
+    Unlike matplotlib's RegularPolyCollection, the sizes passed to
+    SquareCollection are widths, not areas.
+    """
+
+    def __init__(self, sizes=(1.,), **kwargs):
+        sizes = np.asarray(sizes)
+        areas = np.pi / 2 * sizes**2
+        super(SquareCollection, self).__init__(4, rotation=np.pi/4.,
+                                               sizes=areas, **kwargs)
+
+    def set_axes(self, ax):
+        collections.RegularPolyCollection.set_axes(self, ax)
+        # override default offset transform and use data transform
+        self._offsets, self._uniform_offsets = self._uniform_offsets, None
+        self._transOffset = ax.transData
+
+    def get_transform(self):
+        """Return transform scaling circle areas to data space.
+
+        AlterThis needs to be recalculated when the axes change.
+        """
+        return pts2data_transform(self.axes)
+
+
 if __name__ == '__main__':
     import matplotlib.pyplot as plt
 
-    f, ax = plt.subplots()
+    f, (ax1, ax2) = plt.subplots(ncols=2)
 
     c = CircleCollection([1], offsets=[(1, 1)])
-    ax.add_collection(c)
-    ax.axis([0, 2, 0, 2])
-    ax.set_aspect('equal')
+    ax1.add_collection(c)
+    ax1.axis([0, 2, 0, 2])
+    ax1.set_aspect('equal')
 
+    s = SquareCollection(sizes=[1], offsets=[(1, 1)])
+    ax2.add_collection(s)
+    ax2.axis([0, 2, 0, 2])
+    ax2.set_aspect('equal')
     plt.show()
 
