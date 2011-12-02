@@ -21,7 +21,25 @@ def get_hg_revision(*args, **kwargs):
 
 
 class ProgressBar(progressbar.ProgressBar):
-    """ProgressBar class with default widgets and improved update method"""
+    """ProgressBar class with default widgets and improved update method.
+
+    This implementation simplifies usage when the total number of iterations
+    is known:
+
+    >>> pbar = ProgressBar(50)
+    >>> pbar.start()
+    >>> for i in iterable:
+    ...     pbar.update()
+    >>> pbar.finish()
+
+    instead of
+
+    >>> pbar = ProgressBar(50)
+    >>> pbar.start()
+    >>> for n, i in enumerate(iterable):
+    ...     pbar.update(n)
+    >>> pbar.finish()
+    """
 
     def __init__(self, length, name='progress', **kwargs):
         assert 'maxval' not in kwargs
@@ -31,6 +49,10 @@ class ProgressBar(progressbar.ProgressBar):
         progressbar.ProgressBar.__init__(self, widgets=widgets, maxval=length)
 
     def update(self, value=None):
+        """Updates ProgressBar to new value.
+
+        If no value is specified, increment current value.
+        """
         if value is None:
             value = self.currval + 1
         progressbar.ProgressBar.update(self, value=value)
