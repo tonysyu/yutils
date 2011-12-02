@@ -1,4 +1,5 @@
 from warnings import warn
+import progressbar
 import numpy as np
 
 import multiloop
@@ -17,6 +18,22 @@ def add_to_python_path(*args, **kwargs):
 def get_hg_revision(*args, **kwargs):
     msg = 'yutils.get_hg_revision moved to yutils.hg.get_revision'
     raise DeprecationWarning(msg)
+
+
+class ProgressBar(progressbar.ProgressBar):
+    """ProgressBar class with default widgets and improved update method"""
+
+    def __init__(self, length, name='progress', **kwargs):
+        assert 'maxval' not in kwargs
+        if 'widgets' not in kwargs:
+            widgets = [name, progressbar.Percentage(), ' ',
+                       progressbar.Bar(), ' ', progressbar.ETA()]
+        progressbar.ProgressBar.__init__(self, widgets=widgets, maxval=length)
+
+    def update(self, value=None):
+        if value is None:
+            value = self.currval + 1
+        progressbar.ProgressBar.update(self, value=value)
 
 
 def pad_zeros(maxint):
