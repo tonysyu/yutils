@@ -110,14 +110,8 @@ def thumbnail():
     plt.rc('figure.subplot', left=0.24, bottom=0.2)
 
 
-def demo_plot(ax):
-    x = np.linspace(0, 2*np.pi)
-    y = np.sin(x)
-    ax.plot(x, y)
-    ax.set_xlabel(r'$x$ label')
-    ax.set_ylabel(r'$y$ label')
-
 if __name__ == '__main__':
+    from yutils.mpl.core import demo_plot
 
     # Note you should not run multiple rc configurations.
     # rc parameters can affect *some* values in *existing* plots.

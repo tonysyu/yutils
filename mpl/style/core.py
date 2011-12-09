@@ -44,15 +44,8 @@ def _calc_limits(axis, frac):
         return limits + pad
 
 
-def demo_plot(ax):
-    x = np.linspace(0, 2*np.pi)
-    y = np.sin(x)
-    ax.plot(x, y)
-    ax.set_xlabel(r'$x$ label')
-    ax.set_ylabel(r'$y$ label')
-
-
 if __name__ == '__main__':
+    from yutils.mpl.core import demo_plot
 
     f, ax = plt.subplots()
     demo_plot(ax)
@@ -64,7 +57,6 @@ if __name__ == '__main__':
     floating_yaxis(ax)
     pad_limits(ax=ax)
     ax.set_title('floating_yaxis with pad_limits')
-    f.tight_layout()
 
     plt.show()
 

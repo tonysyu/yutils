@@ -58,3 +58,15 @@ def figimage(img, scale=1, dpi=None):
     return fig, ax
 
 
+
+def demo_plot(ax=None):
+    ax = ax if ax is not None else plt.gca()
+
+    x = np.linspace(0, 2*np.pi)
+    ax.plot(x, np.sin(x), label='line')
+    ax.plot(x, np.cos(x), 'ro', label='markers')
+    ax.set_xlabel(r'$x$ label')
+    ax.set_ylabel(r'$y$ label')
+    ax.set_title('title')
+    ax.legend()
+
