@@ -2,7 +2,10 @@
 The functions in this module change the global plotting parameters.
 """
 import matplotlib.pyplot as plt
-import numpy as np
+
+
+__all__ = ['figsize', 'thesis', 'thesis_full', 'publication', 'twocolumn',
+           'jfm', 'presentation', 'thumbnail']
 
 
 THESIS_WIDTH_INCHES = 6.5 # textwidth of page with 1-inch margins.
