@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 
 
 __all__ = ['figsize', 'thesis', 'thesis_full', 'publication', 'twocolumn',
-           'jfm', 'presentation', 'thumbnail']
+           'pof', 'jfm', 'presentation', 'thumbnail']
 
 
 THESIS_WIDTH_INCHES = 6.5 # textwidth of page with 1-inch margins.
@@ -73,6 +73,14 @@ def twocolumn(figaspect=1.35):
         aspect ratio of figure
     """
     publication(APS_TWO_COLUMN_WIDTH_INCHES, figaspect=figaspect)
+
+
+def pof(figaspect=1.35, fullwidth=False):
+    width = APS_TWO_COLUMN_WIDTH_INCHES
+    if fullwidth:
+        raise NotImplementedError("Todo")
+    publication(width=width, figaspect=figaspect)
+    plt.rc('font', family='serif')
 
 
 def jfm(figaspect=1.35, frac_page_width=0.7):
