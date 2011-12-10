@@ -1,6 +1,12 @@
 import numpy as np
 import matplotlib as mpl
 from matplotlib import colors
+import matplotlib.pyplot as plt
+
+
+__all__ = ['REVERSE_CMAP', 'CMAP_RANGE', 'make_color_mapper', 'cmap_intervals',
+           'cycle_cmap', 'cycle_cmap_axes', 'blue_white_red', 'white_red',
+           'white_orange']
 
 
 # reverse some colormaps so that color goes from light to dark
@@ -201,9 +207,8 @@ wo_speq = {'blue': [(0., 1.0, 1.0),
 white_orange = _SequentialAlphaColormap(wo_speq, wo_speq, _lutsize)
 white_orange.max_alpha = 1
 
-if __name__ == '__main__':
-    import matplotlib.pyplot as plt
 
+if __name__ == '__main__':
     n_lines = 10
     cycle_cmap(n_lines)
     x = np.linspace(0, 10)
