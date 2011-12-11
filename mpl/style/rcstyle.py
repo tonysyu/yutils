@@ -57,7 +57,7 @@ def publication(width=4, figaspect=1.35):
     plt.rc('figure', figsize=figsize(width, figaspect))
     plt.rc('font', size=9)
     plt.rc('legend', fontsize=9)
-    plt.rc('lines', linewidth=0.5)
+    plt.rc('lines', linewidth=0.5, markersize=3)
     plt.rc('axes', linewidth=0.5)
     plt.rc('patch', linewidth=0.5)
     plt.rc('savefig', extension='pdf')
@@ -127,12 +127,12 @@ if __name__ == '__main__':
     # Note you should not run multiple rc configurations.
     # rc parameters can affect *some* values in *existing* plots.
 
-    presentation()
-    f, ax = plt.subplots()
-    demo_plot(ax)
-
-    #publication()
+    #presentation()
     #f, ax = plt.subplots()
     #demo_plot(ax)
+
+    publication()
+    f, ax = plt.subplots()
+    demo_plot(ax)
 
     plt.show()
