@@ -8,7 +8,7 @@ LOWERCASE_WORDS = ['a',   'an',   'and',  'as',   'at',   'by',   'de',
 UPPERCASE_WORDS = ['SIAM', 'AICHE', 'ISIJ', 'IEEE', 'II', 'III', 'AIME', 'EPL']
 
 FIRST_WORD = re.compile(r'^\b\w+')
-ALL_WORDS = re.compile(r'\b\w+')
+ALL_WORDS = re.compile(r'\b\w+|\b\'s')
 
 
 def titlecase(title_string):
