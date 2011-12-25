@@ -87,6 +87,7 @@ def jfm(figaspect=1.35, frac_page_width=0.7):
     """Change plot settings for Journal of Fluid Mechanics."""
     width = JFM_WIDTH_INCHES * frac_page_width
     publication(width, figaspect=figaspect)
+    plt.rc('lines', linewidth=1)
 
 
 def presentation(width=KEYNOTE_WIDTH_72DPI/2., frac_page_width=None,
