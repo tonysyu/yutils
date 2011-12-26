@@ -4,11 +4,13 @@ Data input/output helper functions.
 from __future__ import with_statement
 import numpy as np
 
+import yutils
 
-def save_array_list(fname, plocs):
+
+def save_array_list(fname, arrays):
     """Save list of arrays to an npz file."""
     # cast integer indexes to strings because numpy.savez requires string keys
-    save_data = dict((str(i), a) for i, a in enumerate(plocs))
+    save_data = dict((str(i), a) for i, a in enumerate(arrays))
     np.savez(fname, **save_data)
 
 
@@ -20,6 +22,51 @@ def load_array_list(fname):
     """
     data = np.load(fname)
     return [data[str(i)] for i in xrange(len(data.files))]
+
+
+def save_ragged_arrays(fname, **kwargs):
+    """Save ragged arrays to an npz file.
+
+    Each keyword argument specifies a separate ragged array.
+    Each ragged array is a list containing arrays of different lengths.
+
+    Parameters
+    ----------
+    fname : str
+        Name of npz data file.
+    kwargs : lists of arrays
+        Ragged arrays to be saved.
+    """
+    save_data = dict()
+    for aprefix, alist in kwargs.iteritems():
+        fmt = '%s_%s' % (aprefix, yutils.pad_zeros(len(alist)))
+        for i, array in enumerate(alist):
+            save_data[fmt % i] = array
+    np.savez(fname, **save_data)
+
+
+def load_ragged_arrays(fname, list_names=None):
+    """Load ragged arrays from an npz file.
+
+    Each keyword argument specifies a separate ragged array.
+    Each ragged array is a list containing arrays of different lengths.
+
+    This function assumes an npz file, specified by `fname`, has been created
+    by `save_array_lists`.
+
+    Parameters
+    ----------
+    fname : str
+        Name of npz data file.
+    list_names : lists of arrays
+        Names of ragged arrays in npz file.
+    """
+    data = np.load(fname)
+    array_lists = dict()
+    for aprefix in list_names:
+        anames = sorted(f for f in data.files if f.startswith(aprefix))
+        array_lists[aprefix] = [data[a] for a in anames]
+    return array_lists
 
 
 def read_debug_data(datafile, varnames, postfix=' = ', init=None, noisy=False):
