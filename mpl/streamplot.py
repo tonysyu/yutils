@@ -272,12 +272,55 @@ def interpgrid(a, xi, yi):
     return a0 * (1 - yt) + a1 * yt
 
 
+#def _gen_starting_points(mask):
+    #Y, X = np.mgrid[:mask.ny, :mask.nx]
+    ## reshape X, Y grids into [(x0, y0), ..., (xn, yn)] coordinates
+    #coords = np.hstack(([X.reshape((-1, 1)), Y.reshape((-1, 1))]))
+    ## seed random number generator so that results are reproducible
+    #np.random.seed(0)
+    ## randomize starting points so they are more spread out
+    #np.random.shuffle(coords)
+    #for xy in coords:
+        #yield xy
+
+
 def _gen_starting_points(mask):
-    Y, X = np.mgrid[:mask.ny, :mask.nx]
-    # reshape X, Y grids into [(x0, y0), ..., (xn, yn)] coordinates
-    coords = np.hstack(([X.reshape((-1, 1)), Y.reshape((-1, 1))]))
-    for xy in coords:
-        yield xy
+    """Yield starting points for streamlines"""
+
+    # Trying points on the boundary first gives higher quality streamlines.
+    # This algorithm starts with a point on the mask corner and spirals inward
+    # This algorithm is inefficient, but fast compared to rest of streampplot
+    xfirst = 0
+    yfirst = 1
+    xlast = mask.nx - 1
+    ylast = mask.ny - 1
+    x, y = 0, 0
+    i = 0
+    direction = 'right'
+    for i in xrange(mask.nx * mask.ny):
+
+        yield x, y
+
+        if direction == 'right':
+            x += 1
+            if x >= xlast:
+                xlast -=1
+                direction = 'up'
+        elif direction == 'up':
+            y += 1
+            if y >= ylast:
+                ylast -=1
+                direction = 'left'
+        elif direction == 'left':
+            x -= 1
+            if x <= xfirst:
+                xfirst +=1
+                direction = 'down'
+        elif direction == 'down':
+            y -= 1
+            if y <= yfirst:
+                yfirst +=1
+                direction = 'right'
 
 
 def get_integrate_function(u, v, grid, mask, dmap, INTEGRATOR):
