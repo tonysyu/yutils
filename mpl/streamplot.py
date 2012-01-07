@@ -93,7 +93,6 @@ class StreamMask(object):
             self.nx = int(30 * density[0])
             self.ny = int(30 * density[1])
         self._mask = np.zeros((self.ny, self.nx))
-        self.size = max(self.ny, self.nx)
 
     def __setitem__(self, *args):
         idx, value = args
