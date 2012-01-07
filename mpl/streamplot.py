@@ -22,7 +22,6 @@ THE SOFTWARE.
 
 """
 #TODO: combine x-y variables into a point variable
-#TODO: fix _gen_starting_points for non-square masks
 #TODO: simplify integration loops
 
 version = '4'
@@ -274,13 +273,11 @@ def interpgrid(a, xi, yi):
 
 
 def _gen_starting_points(mask):
-    for indent in range(mask.size / 2):
-        for k in range(mask.size - 2*indent):
-            k0 = k+indent
-            x = [k0, k0, indent, mask.nx-1-indent]
-            y = [indent, mask.ny-1-indent, k0, k0]
-            for xi, yi in zip(x, y):
-                yield xi, yi
+    Y, X = np.mgrid[:mask.ny, :mask.nx]
+    # reshape X, Y grids into [(x0, y0), ..., (xn, yn)] coordinates
+    coords = np.hstack(([X.reshape((-1, 1)), Y.reshape((-1, 1))]))
+    for xy in coords:
+        yield xy
 
 
 def get_integrate_function(u, v, grid, mask, dmap, INTEGRATOR):
