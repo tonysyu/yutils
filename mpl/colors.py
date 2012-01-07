@@ -145,7 +145,7 @@ class _AlphaColormap(colors.LinearSegmentedColormap):
             intensity = intensity / 255.
         intensity = np.clip(intensity, 0, 1)
         alpha = self.max_alpha * self._intensity2alpha(intensity)
-        if np.issubdtype(intensity.dtype, np.integer):
+        if np.issubdtype(rgba.dtype, np.integer):
             alpha = np.uint8(np.round(255 * alpha))
         if len(rgba) == 4:
             return rgba[:3] + (alpha,)
