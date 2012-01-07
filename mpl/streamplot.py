@@ -21,10 +21,12 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 """
-#TODO: combine x-y variables into a point variable
 #TODO: simplify integration loops
 
 version = '4'
+
+from operator import mul
+from itertools import imap
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -402,43 +404,42 @@ def get_integrate_function(u, v, grid, mask, dmap, INTEGRATOR):
             xf_traj = []
             yf_traj = []
 
+            # RK4 coefficients
+            a2 = 0.25
+            a3 = (3./32, 9./32)
+            a4 = (1932./2197, -7200./2197, 7296./2197)
+            a5 = (439./216, -8, 3680./513, -845./4104)
+            a6 = (-8./27, 2, -3544./2565, 1859./4104, -11./40)
+
+            b4 = (25./216, 1408./2565, 2197./4104, -1./5)
+            b5 = (16./135, 6656./12825, 28561./56430, -9./50, 2./55)
+
             while grid.valid_index(xi, yi):
                 # Time step. First save the point.
                 xf_traj.append(xi)
                 yf_traj.append(yi)
+
                 # Next, advance one using RK45
                 try:
                     k1x, k1y = f(xi, yi)
-                    k2x, k2y = f(xi + .25*ds*k1x,
-                                 yi + .25*ds*k1y)
-                    k3x, k3y = f(xi + 3./32*ds*k1x + 9./32*ds*k2x,
-                                 yi + 3./32*ds*k1y + 9./32*ds*k2y)
-                    k4x, k4y = f(xi + 1932./2197*ds*k1x - 7200./2197*ds*k2x
-                                    + 7296./2197*ds*k3x,
-                                 yi + 1932./2197*ds*k1y - 7200./2197*ds*k2y
-                                    + 7296./2197*ds*k3y)
-                    k5x, k5y = f(xi + 439./216*ds*k1x - 8*ds*k2x
-                                    + 3680./513*ds*k3x - 845./4104*ds*k4x,
-                                 yi + 439./216*ds*k1y - 8*ds*k2y
-                                    + 3680./513*ds*k3y - 845./4104*ds*k4y)
-                    k6x, k6y = f(xi - 8./27*ds*k1x + 2*ds*k2x
-                                    - 3544./2565*ds*k3x + 1859./4104*ds*k4x
-                                    - 11./40*ds*k5x,
-                                 yi - 8./27*ds*k1y + 2*ds*k2y
-                                    - 3544./2565*ds*k3y + 1859./4104*ds*k4y
-                                    - 11./40*ds*k5y)
+                    k2x, k2y = f(xi + ds * a2 * k1x,
+                                 yi + ds * a2 * k1y)
+                    k3x, k3y = f(xi + ds * dot(a3, (k1x, k2x)),
+                                 yi + ds * dot(a3, (k1y, k2y)))
+                    k4x, k4y = f(xi + ds * dot(a4, (k1x, k2x, k3x)),
+                                 yi + ds * dot(a4, (k1y, k2y, k3y)))
+                    k5x, k5y = f(xi + ds * dot(a5, (k1x, k2x, k3x, k4x)),
+                                 yi + ds * dot(a5, (k1y, k2y, k3y, k4y)))
+                    k6x, k6y = f(xi + ds * dot(a6, (k1x, k2x, k3x, k4x, k5x)),
+                                 yi + ds * dot(a6, (k1y, k2y, k3y, k4y, k5y)))
 
                 except IndexError:
                     # Out of the domain on one of the intermediate steps
                     break
-                dx4 = ds*(25./216*k1x + 1408./2565*k3x
-                          + 2197./4104*k4x - 1./5*k5x)
-                dy4 = ds*(25./216*k1y + 1408./2565*k3y
-                          + 2197./4104*k4y - 1./5*k5y)
-                dx5 = ds*(16./135*k1x + 6656./12825*k3x
-                          + 28561./56430*k4x - 9./50*k5x + 2./55*k6x)
-                dy5 = ds*(16./135*k1y + 6656./12825*k3y
-                          + 28561./56430*k4y - 9./50*k5y + 2./55*k6y)
+                dx4 = ds * dot(b4, (k1x, k3x, k4x, k5x))
+                dy4 = ds * dot(b4, (k1y, k3y, k4y, k5y))
+                dx5 = ds * dot(b5, (k1x, k3x, k4x, k5x, k6x))
+                dy5 = ds * dot(b5, (k1y, k3y, k4y, k5y, k6y))
 
                 ## Error is normalized to the axes coordinates (it's a distance)
                 error = np.sqrt(((dx5-dx4)/grid.nx)**2 + ((dy5-dy4)/grid.ny)**2)
@@ -503,6 +504,14 @@ def get_integrate_function(u, v, grid, mask, dmap, INTEGRATOR):
             mask.undo_trajectory()
             return None
     return rk4_integrate
+
+
+def dot(seq1, seq2):
+    """Dot product of two sequences.
+
+    For short sequences, this is faster than transforming to numpy arrays.
+    """
+    return sum(imap(mul, seq1, seq2))
 
 
 def test():
