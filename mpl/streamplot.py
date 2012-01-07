@@ -120,15 +120,17 @@ class DomainMap(object):
 
     Coordinate definitions:
 
-    * axes-coordinates goes from 0 to 1 in the domain
-    * data-coordinates are specified by the input x-y coordinates
-    * grid-coordinates goes from 0 to N and 0 to M for an N x M grid
-    * mask-coordinates goes from 0 to N and 0 to M for an N x M mask
+    * axes-coordinates goes from 0 to 1 in the domain.
+    * data-coordinates are specified by the input x-y coordinates.
+    * grid-coordinates goes from 0 to N and 0 to M for an N x M grid,
+      where N and M match the shape of the input data.
+    * mask-coordinates goes from 0 to N and 0 to M for an N x M mask,
+      where N and M are user-specified to control the density of streamlines.
 
     """
 
     def __init__(self, grid, mask):
-        ## Constants for conversion between grid-coordinates and mask-coordinates
+        ## Constants for conversion between grid- and mask-coordinates
         self.x_grid2mask = float(mask.nx - 1) / grid.nx
         self.y_grid2mask = float(mask.ny - 1) / grid.ny
 
@@ -139,7 +141,7 @@ class DomainMap(object):
         self.y_data2grid = grid.ny / grid.height
 
     def grid2mask(self, xi, yi):
-        ## Takes grid-coords and returns nearest space in mask-coords
+        """Return nearest space in mask-coords from given grid-coords."""
         return int((xi * self.x_grid2mask) + 0.5), \
                int((yi * self.y_grid2mask) + 0.5)
 
@@ -168,8 +170,6 @@ def streamplot(x, y, u, v, density=1, linewidth=1, color='k', cmap=None,
     linewidth : numeric or 2d array
         vary linewidth when given a 2d array with the same shape as velocities.
     color : matplotlib color code, or 2d array
-      then transformed into color by the 
-      A value of None gives the default for each.
         Streamline color. When given an array with the same shape as
         velocities, values are converted to color using cmap, norm, vmin and
         vmax args.
@@ -269,18 +269,6 @@ def interpgrid(a, xi, yi):
     a0 = a00 * (1 - xt) + a01 * xt
     a1 = a10 * (1 - xt) + a11 * xt
     return a0 * (1 - yt) + a1 * yt
-
-
-#def _gen_starting_points(mask):
-    #Y, X = np.mgrid[:mask.ny, :mask.nx]
-    ## reshape X, Y grids into [(x0, y0), ..., (xn, yn)] coordinates
-    #coords = np.hstack(([X.reshape((-1, 1)), Y.reshape((-1, 1))]))
-    ## seed random number generator so that results are reproducible
-    #np.random.seed(0)
-    ## randomize starting points so they are more spread out
-    #np.random.shuffle(coords)
-    #for xy in coords:
-        #yield xy
 
 
 def _gen_starting_points(mask):
