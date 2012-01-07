@@ -197,8 +197,6 @@ def streamplot(x, y, u, v, density=1, linewidth=1, color='k', cmap=None,
     ## A quick function for integrating trajectories if mask==0.
     trajectories = []
     for xm, ym in _gen_starting_points(mask):
-        if not mask.valid_index(xm, ym):
-            continue
         if mask[ym, xm] == 0:
             t = integrate(*dmap.mask2grid(xm, ym))
             if t != None:
