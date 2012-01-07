@@ -212,25 +212,27 @@ def streamplot(x, y, u, v, density=1, linewidth=1, color='k', cmap=None,
         if cmap == None: cmap = matplotlib.cm.get_cmap(
             matplotlib.rcParams['image.cmap'])
 
+    line_kw = {}
+    arrow_kw = dict(arrowstyle='->', mutation_scale=20*arrowsize)
+
     for t in trajectories:
         tgx = np.array(t[0])
         tgy = np.array(t[1])
 
-        args = {}
         if type(linewidth) == np.ndarray:
-            args['linewidth'] = interpgrid(linewidth, tgx, tgy)[:-1]
-            arrowlinewidth = args['linewidth'][len(tgx) / 2]
+            line_kw['linewidth'] = interpgrid(linewidth, tgx, tgy)[:-1]
+            arrow_kw['linewidth'] = line_kw['linewidth'][len(tgx) / 2]
         else:
-            args['linewidth'] = linewidth
-            arrowlinewidth = linewidth
+            line_kw['linewidth'] = linewidth
+            arrow_kw['linewidth'] = linewidth
 
         if type(color) == np.ndarray:
-            args['color'] = cmap(norm(vmin=vmin,vmax=vmax)
+            line_kw['color'] = cmap(norm(vmin=vmin,vmax=vmax)
                                  (interpgrid(color, tgx, tgy)[:-1]))
-            arrowcolor = args['color'][len(tgx) / 2]
+            arrow_kw['color'] = line_kw['color'][len(tgx) / 2]
         else:
-            args['color'] = color
-            arrowcolor = color
+            line_kw['color'] = color
+            arrow_kw['color'] = color
 
         # Rescale from grid-coordinates to data-coordinates.
         tx = np.array(t[0]) * grid.dx + grid.x_origin
@@ -239,14 +241,12 @@ def streamplot(x, y, u, v, density=1, linewidth=1, color='k', cmap=None,
         points = np.transpose([tx, ty]).reshape(-1, 1, 2)
         segments = np.concatenate([points[:-1], points[1:]], axis=1)
 
-        lc = matplotlib.collections.LineCollection(segments, **args)
+        lc = matplotlib.collections.LineCollection(segments, **line_kw)
         ax.add_collection(lc)
 
         ## Add arrows half way along each trajectory.
         n = len(tx) / 2
-        p = mpp.FancyArrowPatch((tx[n], ty[n]), (tx[n+1], ty[n+1]),
-                                arrowstyle='->', lw=arrowlinewidth,
-                                mutation_scale=20*arrowsize, color=arrowcolor)
+        p = mpp.FancyArrowPatch((tx[n], ty[n]), (tx[n+1], ty[n+1]), **arrow_kw)
         ax.add_patch(p)
 
     ax.update_datalim(((x.min(), y.min()), (x.max(), y.max())))
