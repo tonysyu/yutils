@@ -58,7 +58,7 @@ def publication(width=4, figaspect=1.35):
     plt.rc('font', size=9)
     plt.rc('legend', fontsize=9)
     plt.rc('lines', linewidth=0.5, markersize=3)
-    plt.rc('axes', linewidth=0.5)
+    plt.rc('axes', linewidth=0.5, titlesize=9)
     plt.rc('patch', linewidth=0.5)
     plt.rc('savefig', extension='pdf')
     plt.rc('figure.subplot', left=0.17, bottom=0.16, right=0.93, top=0.93)
