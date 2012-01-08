@@ -175,7 +175,7 @@ class DomainMap(object):
 
 def streamplot(x, y, u, v, density=1, linewidth=1, color='k', cmap=None,
                norm=None, vmax=None, vmin=None, arrowsize=1, arrowstyle='-|>',
-               INTEGRATOR='RK4', ax=None):
+               minlength=0.2, INTEGRATOR='RK4', ax=None):
     """Draws streamlines of a vector flow.
 
     Parameters
@@ -194,6 +194,8 @@ def streamplot(x, y, u, v, density=1, linewidth=1, color='k', cmap=None,
         Streamline color. When given an array with the same shape as
         velocities, values are converted to color using cmap, norm, vmin and
         vmax args.
+    minlength : float
+        Minimum length of streamline in axes coordinates.
 
     INTEGRATOR is experimental. Currently, RK4 should be used.
     """
@@ -211,7 +213,7 @@ def streamplot(x, y, u, v, density=1, linewidth=1, color='k', cmap=None,
     if type(color) == np.ndarray:
         assert color.shape == grid.shape
 
-    integrate = get_integrate_function(u, v, grid, mask, dmap, INTEGRATOR)
+    integrate = get_integrator(u, v, grid, mask, dmap, minlength, INTEGRATOR)
 
     ## A quick function for integrating trajectories if mask==0.
     trajectories = []
@@ -329,7 +331,7 @@ def _gen_starting_points(mask):
                 direction = 'right'
 
 
-def get_integrate_function(u, v, grid, mask, dmap, INTEGRATOR):
+def get_integrator(u, v, grid, mask, dmap, minlength, INTEGRATOR):
 
     # rescale velocity onto grid-coordinates for integrations.
     u, v = dmap.data2grid(u, v)
@@ -482,7 +484,7 @@ def get_integrate_function(u, v, grid, mask, dmap, INTEGRATOR):
             return None
 
         # Reject short trajectories (`s` is in axes-coordinates)
-        if stotal > .2:
+        if stotal > minlength:
             initxb, inityb = dmap.grid2mask(x0, y0)
             mask[inityb, initxb] = 1
             return x_traj, y_traj
