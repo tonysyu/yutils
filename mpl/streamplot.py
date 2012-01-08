@@ -368,13 +368,11 @@ def get_integrate_function(u, v, grid, mask, dmap, INTEGRATOR):
                     break
 
                 stotal += ds
-                # Next, if s gets to thres, check mask.
                 new_xm, new_ym = dmap.grid2mask(xi, yi)
 
                 if new_xm != xm or new_ym != ym:
-                    # New square, so check and colour. Quit if required.
-                    if mask[new_ym,new_xm] == 0:
-                        mask[new_ym,new_xm] = 1
+                    if mask[new_ym, new_xm] == 0:
+                        mask[new_ym, new_xm] = 1
                         xm = new_xm
                         ym = new_ym
                     else:
@@ -402,7 +400,7 @@ def get_integrate_function(u, v, grid, mask, dmap, INTEGRATOR):
             xf_traj = []
             yf_traj = []
 
-            # RK4 coefficients
+            # RK45 coefficients
             a2 = 0.25
             a3 = (3./32, 9./32)
             a4 = (1932./2197, -7200./2197, 7296./2197)
@@ -413,11 +411,9 @@ def get_integrate_function(u, v, grid, mask, dmap, INTEGRATOR):
             b5 = (16./135, 6656./12825, 28561./56430, -9./50, 2./55)
 
             while grid.valid_index(xi, yi):
-                # Time step. First save the point.
                 xf_traj.append(xi)
                 yf_traj.append(yi)
 
-                # Next, advance one using RK45
                 try:
                     k1x, k1y = f(xi, yi)
                     k2x, k2y = f(xi + ds * a2 * k1x,
@@ -430,29 +426,27 @@ def get_integrate_function(u, v, grid, mask, dmap, INTEGRATOR):
                                  yi + ds * dot(a5, (k1y, k2y, k3y, k4y)))
                     k6x, k6y = f(xi + ds * dot(a6, (k1x, k2x, k3x, k4x, k5x)),
                                  yi + ds * dot(a6, (k1y, k2y, k3y, k4y, k5y)))
-
                 except IndexError:
                     # Out of the domain on one of the intermediate steps
                     break
+
                 dx4 = ds * dot(b4, (k1x, k3x, k4x, k5x))
                 dy4 = ds * dot(b4, (k1y, k3y, k4y, k5y))
                 dx5 = ds * dot(b5, (k1x, k3x, k4x, k5x, k6x))
                 dy5 = ds * dot(b5, (k1y, k3y, k4y, k5y, k6y))
 
-                ## Error is normalized to the axes coordinates (it's a distance)
+                # Error is normalized to the axes coordinates
                 error = np.sqrt(((dx5-dx4)/grid.nx)**2 + ((dy5-dy4)/grid.ny)**2)
                 if error < maxerror:
-                    # Step is within tolerance so continue
                     xi += dx5
                     yi += dy5
-                    # Final position might be out of the domain
+
                     if not grid.valid_index(xi, yi):
                         break
+
                     stotal += ds
-                    # Next, if s gets to thres, check mask.
                     new_xm, new_ym = dmap.grid2mask(xi, yi)
                     if new_xm != xm or new_ym != ym:
-                        # New square, so check and colour. Quit if required.
                         if mask[new_ym,new_xm] == 0:
                             mask[new_ym,new_xm] = 1
                             xm = new_xm
@@ -461,9 +455,9 @@ def get_integrate_function(u, v, grid, mask, dmap, INTEGRATOR):
                             break
                     if stotal > 2:
                         break
-                # Modify ds for the next iteration.
+
+                # Use small steps when curvature is high
                 if len(xf_traj) > 2:
-                    ## hacky curvature dependance:
                     v1 = np.array((xf_traj[-1]-xf_traj[-2],
                                    yf_traj[-1]-yf_traj[-2]))
                     v2 = np.array((xf_traj[-2]-xf_traj[-3],
@@ -473,6 +467,7 @@ def get_integrate_function(u, v, grid, mask, dmap, INTEGRATOR):
                     if costheta < .8:
                         ds = .01
                         continue
+
                 ds = min(maxds, 0.85*ds*(maxerror/error)**.2)
             return stotal, xf_traj, yf_traj
 
@@ -481,19 +476,17 @@ def get_integrate_function(u, v, grid, mask, dmap, INTEGRATOR):
         elif INTEGRATOR == 'RK45':
             integrator = rk45
 
-        ## Forward and backward trajectories
         sf, xf_traj, yf_traj = integrator(x0, y0, forward_time)
         sb, xb_traj, yb_traj = integrator(x0, y0, backward_time)
-
         # combine forward and backward trajectories
         stotal = sf + sb
         x_traj = xb_traj[::-1] + xf_traj[1:]
         y_traj = yb_traj[::-1] + yf_traj[1:]
 
-        ## Tests to check length of traj. Remember, s in units of axes.
         if len(x_traj) < 1:
             return None
 
+        # Reject short trajectories (`s` is in axes-coordinates)
         if stotal > .2:
             initxb, inityb = dmap.grid2mask(x0, y0)
             mask[inityb, initxb] = 1
@@ -501,6 +494,7 @@ def get_integrate_function(u, v, grid, mask, dmap, INTEGRATOR):
         else:
             mask.undo_trajectory()
             return None
+
     return rk4_integrate
 
 
