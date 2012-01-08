@@ -114,10 +114,6 @@ class StreamMask(object):
         for t in self._traj:
             self._mask.__setitem__(t, 0)
 
-    def valid_index(self, x, y):
-        """Return True if point is a valid index of mask."""
-        return x >= 0 and x < self.nx and y >= 0 and y < self.ny
-
     def update_current_xy(self, xy):
         """Update current position in mask.
 
@@ -230,7 +226,8 @@ def streamplot(x, y, u, v, density=1, linewidth=1, color='k', cmap=None,
     trajectories = []
     for xm, ym in _gen_starting_points(mask):
         if mask[ym, xm] == 0:
-            t = integrate(*dmap.mask2grid(xm, ym))
+            xg, yg = dmap.mask2grid(xm, ym)
+            t = integrate(xg, yg)
             if t != None:
                 trajectories.append(t)
 
