@@ -92,8 +92,8 @@ class StreamMask(object):
             self.nx = self.ny = int(30 * density)
         else:
             assert len(density) > 0
-            self.nx = int(30 * density[0])
-            self.ny = int(30 * density[1])
+            self.nx = int(25 * density[0])
+            self.ny = int(25 * density[1])
         self._mask = np.zeros((self.ny, self.nx))
 
         self.current_xy = None
@@ -175,7 +175,7 @@ class DomainMap(object):
 
 def streamplot(x, y, u, v, density=1, linewidth=1, color='k', cmap=None,
                norm=None, vmax=None, vmin=None, arrowsize=1, arrowstyle='-|>',
-               minlength=0.2, INTEGRATOR='RK4', ax=None):
+               minlength=0.1, INTEGRATOR='RK4', ax=None):
     """Draws streamlines of a vector flow.
 
     Parameters
@@ -232,7 +232,7 @@ def streamplot(x, y, u, v, density=1, linewidth=1, color='k', cmap=None,
             matplotlib.rcParams['image.cmap'])
 
     line_kw = {}
-    arrow_kw = dict(arrowstyle=arrowstyle, mutation_scale=20*arrowsize)
+    arrow_kw = dict(arrowstyle=arrowstyle, mutation_scale=10*arrowsize)
 
     for t in trajectories:
         tgx = np.array(t[0])
