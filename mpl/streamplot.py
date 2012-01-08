@@ -316,7 +316,7 @@ def get_integrator(u, v, grid, dmap, minlength, integrator):
 
     # speed (path length) will be in axes-coordinates
     u_ax = u / grid.nx
-    v_ax = v / grid.nx
+    v_ax = v / grid.ny
     speed = np.sqrt(u_ax**2 + v_ax**2)
 
     def forward_time(xi, yi):
