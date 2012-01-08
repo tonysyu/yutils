@@ -21,7 +21,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 """
-#TODO: simplify integration loops
 #TODO: Make DomainMap the only interface for coordinate systems.
 #      It would then communicate with grid and mask.
 
@@ -190,6 +189,7 @@ class DomainMap(object):
 
 
 class Grid(object):
+    """Grid of data *indexes* (not their coordinates)."""
     def __init__(self, x, y):
 
         if len(x.shape) == 2:
@@ -493,11 +493,12 @@ def dot(seq1, seq2):
 
 
 def _gen_starting_points(shape):
-    """Yield starting points for streamlines"""
+    """Yield starting points for streamlines.
 
-    # Trying points on the boundary first gives higher quality streamlines.
-    # This algorithm starts with a point on the mask corner and spirals inward
-    # This algorithm is inefficient, but fast compared to rest of streamplot
+    Trying points on the boundary first gives higher quality streamlines.
+    This algorithm starts with a point on the mask corner and spirals inward.
+    This algorithm is inefficient, but fast compared to rest of streamplot.
+    """
     ny, nx = shape
     xfirst = 0
     yfirst = 1
