@@ -270,7 +270,8 @@ def streamplot(x, y, u, v, density=1, linewidth=1, color='k', cmap=None,
         ax.add_collection(lc)
 
         ## Add arrows half way along each trajectory.
-        n = len(tx) / 2
+        s = np.cumsum(np.sqrt(np.diff(tx)**2 + np.diff(ty)**2))
+        n = np.searchsorted(s, s[-1] / 2.)
         p = mpp.FancyArrowPatch((tx[n], ty[n]), (tx[n+1], ty[n+1]), **arrow_kw)
         ax.add_patch(p)
 
