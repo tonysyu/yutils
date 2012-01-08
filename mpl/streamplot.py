@@ -22,8 +22,6 @@ THE SOFTWARE.
 
 """
 #TODO: simplify integration loops
-#TODO: Consider changing mask behavior so that cell is set when a streamline
-#      enters the cell (currently, only starting points set a cell).
 #TODO: Make DomainMap the only interface for coordinate systems.
 #      It would then communicate with grid and mask.
 
@@ -80,8 +78,10 @@ class Grid(object):
 class StreamMask(object):
     """Mask to keep track of discrete regions crossed by streamlines.
 
-    Streamlines are only allowed to pass through zeroed regions. The resolution
-    of this grid determines the approximate spacing between trajectories.
+    The resolution of this grid determines the approximate spacing between
+    trajectories. Streamlines are only allowed to pass through zeroed cells:
+    When a streamline enters a cell, that cell is set to 1, and no new
+    streamlines are allowed to enter.
 
     Before adding a trajectory, run `start_trajectory` to keep track of regions
     crossed by a given trajectory. Later, if you decide the trajectory is bad
@@ -109,23 +109,24 @@ class StreamMask(object):
         return self._mask.__getitem__(*args)
 
     def start_trajectory(self):
+        """Start recording streamline trajectory"""
         # clear any previous trajectories
         self._traj = []
 
     def undo_trajectory(self):
+        """Remove current trajectory from mask"""
         for t in self._traj:
             self._mask.__setitem__(t, 0)
 
-    def update_current_xy(self, xy):
-        """Update current position in mask.
+    def update_trajectory(self, xm, ym):
+        """Update current trajectory position in mask.
 
         If the new position has already been filled, raise `MaskOccupiedError`.
         """
-        if self.current_xy != xy:
-            new_xm, new_ym = xy
-            if self[new_ym, new_xm] == 0:
-                self[new_ym, new_xm] = 1
-                self.current_xy = xy
+        if self.current_xy != (xm, ym):
+            if self[ym, xm] == 0:
+                self[ym, xm] = 1
+                self.current_xy = (xm, ym)
             else:
                 raise MaskOccupiedError
 
@@ -397,7 +398,8 @@ def get_integrator(u, v, grid, mask, dmap, minlength, integrator):
                     break
 
                 try:
-                    mask.update_current_xy(dmap.grid2mask(xi, yi))
+                    xm, ym = dmap.grid2mask(xi, yi)
+                    mask.update_trajectory(xm, ym)
                 except MaskOccupiedError:
                     break
 
@@ -465,7 +467,8 @@ def get_integrator(u, v, grid, mask, dmap, minlength, integrator):
                         break
 
                     try:
-                        mask.update_current_xy(dmap.grid2mask(xi, yi))
+                        xm, ym = dmap.grid2mask(xi, yi)
+                        mask.update_trajectory(xm, ym)
                     except MaskOccupiedError:
                         break
 
