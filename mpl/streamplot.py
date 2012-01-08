@@ -185,15 +185,24 @@ def streamplot(x, y, u, v, density=1, linewidth=1, color='k', cmap=None,
     u, v : 2d arrays
         x and y-velocities. Number of rows should match length of y, and
         the number of columns should match x.
-    density : numeric
-        controls the closeness of the streamlines. For different densities in
-        each direction, use a tuple or list [densityx, densityy].
+    density : float or 2-tuple
+        Controls the closeness of streamlines. When `density = 1`, the domain
+        is divided into a 25x25 grid---`density` linearly scales this grid.
+        Each cell in the grid can have, at most, one traversing streamline.
+        For different densities in each direction, use [density_x, density_y].
     linewidth : numeric or 2d array
         vary linewidth when given a 2d array with the same shape as velocities.
     color : matplotlib color code, or 2d array
         Streamline color. When given an array with the same shape as
         velocities, values are converted to color using cmap, norm, vmin and
         vmax args.
+    cmap : Colormap
+        Colormap used to plot streamlines and arrows. Only necessary when using
+        an array input for `color`.
+    arrowsize : float
+        Factor scale arrow size.
+    arrowstyle : str
+        Arrow style specification. See `matplotlib.patches.FancyArrowPatch`.
     minlength : float
         Minimum length of streamline in axes coordinates.
 
