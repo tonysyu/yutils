@@ -87,7 +87,7 @@ def streamplot(x, y, u, v, density=1, linewidth=1, color='k', cmap=None,
     if type(color) == np.ndarray:
         assert color.shape == grid.shape
 
-    integrate = get_integrator(u, v, grid, mask, dmap, minlength, integrator)
+    integrate = get_integrator(u, v, grid, dmap, minlength, integrator)
 
     ## A quick function for integrating trajectories if mask==0.
     trajectories = []
@@ -187,6 +187,24 @@ class DomainMap(object):
     def data2grid(self, xd, yd):
         return xd * self.x_data2grid, yd * self.y_data2grid
 
+    def start_trajectory(self, xg, yg):
+        self.mask._start_trajectory()
+        xm, ym = self.grid2mask(xg, yg)
+        self.mask._update_trajectory(xm, ym)
+
+    def reset_start_point(self, xg, yg):
+        xm, ym = self.grid2mask(xg, yg)
+        self.mask.current_xy = (xm, ym)
+
+    def update_trajectory(self, xg, yg):
+        if not self.grid.valid_index(xg, yg):
+            raise InvalidIndexError
+        xm, ym = self.grid2mask(xg, yg)
+        self.mask._update_trajectory(xm, ym)
+
+    def undo_trajectory(self):
+        self.mask._undo_trajectory()
+
 
 class Grid(object):
     """Grid of data *indexes* (not their coordinates)."""
@@ -235,7 +253,7 @@ class StreamMask(object):
     When a streamline enters a cell, that cell is set to 1, and no new
     streamlines are allowed to enter.
 
-    Before adding a trajectory, run `start_trajectory` to keep track of regions
+    Before adding a trajectory, run `_start_trajectory` to keep track of regions
     crossed by a given trajectory. Later, if you decide the trajectory is bad
     (e.g. if the trajectory is very short) just call `undo_trajectory`.
     """
@@ -261,37 +279,37 @@ class StreamMask(object):
     def __getitem__(self, *args):
         return self._mask.__getitem__(*args)
 
-    def start_trajectory(self):
+    def _start_trajectory(self):
         """Start recording streamline trajectory"""
         # clear any previous trajectories
         self._traj = []
 
-    def undo_trajectory(self):
+    def _undo_trajectory(self):
         """Remove current trajectory from mask"""
         for t in self._traj:
             self._mask.__setitem__(t, 0)
 
-    def update_trajectory(self, xm, ym):
+    def _update_trajectory(self, xm, ym):
         """Update current trajectory position in mask.
 
-        If the new position has already been filled, raise `MaskOccupiedError`.
+        If the new position has already been filled, raise `InvalidIndexError`.
         """
         if self.current_xy != (xm, ym):
             if self[ym, xm] == 0:
                 self[ym, xm] = 1
                 self.current_xy = (xm, ym)
             else:
-                raise MaskOccupiedError
+                raise InvalidIndexError
 
 
-class MaskOccupiedError(Exception):
+class InvalidIndexError(Exception):
     pass
 
 
 # Integrator definitions
 #========================
 
-def get_integrator(u, v, grid, mask, dmap, minlength, integrator):
+def get_integrator(u, v, grid, dmap, minlength, integrator):
 
     # rescale velocity onto grid-coordinates for integrations.
     u, v = dmap.data2grid(u, v)
@@ -326,8 +344,9 @@ def get_integrator(u, v, grid, mask, dmap, minlength, integrator):
         resulting trajectory is None if it is shorter than `minlength`.
         """
 
-        mask.start_trajectory()
+        dmap.start_trajectory(x0, y0)
         sf, xf_traj, yf_traj = _integrate(x0, y0, dmap, forward_time)
+        dmap.reset_start_point(x0, y0)
         sb, xb_traj, yb_traj = _integrate(x0, y0, dmap, backward_time)
         # combine forward and backward trajectories
         stotal = sf + sb
@@ -335,12 +354,9 @@ def get_integrator(u, v, grid, mask, dmap, minlength, integrator):
         y_traj = yb_traj[::-1] + yf_traj[1:]
 
         if stotal > minlength:
-            init_xm, init_ym = dmap.grid2mask(x0, y0)
-            mask[init_ym, init_xm] = 1
             return x_traj, y_traj
-        else:
-            # Reject short trajectories (`s` is in axes-coordinates)
-            mask.undo_trajectory()
+        else: # reject short trajectories
+            dmap.undo_trajectory()
             return None
 
     return rk4_integrate
@@ -352,7 +368,6 @@ def _rk4(x0, y0, dmap, f):
     stotal = 0
     xi = x0
     yi = y0
-    dmap.mask.current_xy = dmap.grid2mask(xi, yi)
     xf_traj = []
     yf_traj = []
 
@@ -373,17 +388,13 @@ def _rk4(x0, y0, dmap, f):
         yi += ds*(k1y+2*k2y+2*k3y+k4y) / 6.
         # Final position might be out of the domain
 
-        if not dmap.grid.valid_index(xi, yi):
-            break
-
         try:
-            xm, ym = dmap.grid2mask(xi, yi)
-            dmap.mask.update_trajectory(xm, ym)
-        except MaskOccupiedError:
+            dmap.update_trajectory(xi, yi)
+        except InvalidIndexError:
             break
-
         if (stotal + ds) > 2:
             break
+
         stotal += ds
 
     return stotal, xf_traj, yf_traj
@@ -397,7 +408,6 @@ def _rk45(x0, y0, dmap, f):
     stotal = 0
     xi = x0
     yi = y0
-    dmap.mask.current_xy = dmap.grid2mask(xi, yi)
     xf_traj = []
     yf_traj = []
 
@@ -445,17 +455,13 @@ def _rk45(x0, y0, dmap, f):
             xi += dx5
             yi += dy5
 
-            if not dmap.grid.valid_index(xi, yi):
-                break
-
             try:
-                xm, ym = dmap.grid2mask(xi, yi)
-                dmap.mask.update_trajectory(xm, ym)
-            except MaskOccupiedError:
+                dmap.update_trajectory(xi, yi)
+            except InvalidIndexError:
                 break
-
             if (stotal + ds) > 2:
                 break
+
             stotal += ds
 
         ds = min(maxds, 0.85 * ds * (maxerror/error)**0.2)
