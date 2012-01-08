@@ -21,7 +21,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 """
-
 from operator import mul
 from itertools import imap
 
@@ -73,7 +72,7 @@ def streamplot(x, y, u, v, density=1, linewidth=1, color='k', cmap=None,
     """
     ax = ax if ax is not None else plt.gca()
 
-    grid = IndexGrid(x, y)
+    grid = Grid(x, y)
     mask = StreamMask(density)
     dmap = DomainMap(grid, mask)
 
@@ -158,6 +157,10 @@ class DomainMap(object):
     * mask-coordinates goes from 0 to N and 0 to M for an N x M mask,
       where N and M are user-specified to control the density of streamlines.
 
+    This class also has methods for adding trajectories to the StreamMask.
+    Before adding a trajectory, run `start_trajectory` to keep track of regions
+    crossed by a given trajectory. Later, if you decide the trajectory is bad
+    (e.g. if the trajectory is very short) just call `undo_trajectory`.
     """
 
     def __init__(self, grid, mask):
@@ -185,13 +188,12 @@ class DomainMap(object):
         return xd * self.x_data2grid, yd * self.y_data2grid
 
     def start_trajectory(self, xg, yg):
-        self.mask._start_trajectory()
         xm, ym = self.grid2mask(xg, yg)
-        self.mask._update_trajectory(xm, ym)
+        self.mask._start_trajectory(xm, ym)
 
     def reset_start_point(self, xg, yg):
         xm, ym = self.grid2mask(xg, yg)
-        self.mask.current_xy = (xm, ym)
+        self.mask._current_xy = (xm, ym)
 
     def update_trajectory(self, xg, yg):
         if not self.grid.valid_index(xg, yg):
@@ -203,8 +205,8 @@ class DomainMap(object):
         self.mask._undo_trajectory()
 
 
-class IndexGrid(object):
-    """Grid of data *indexes* (not their coordinates)."""
+class Grid(object):
+    """Grid of data."""
     def __init__(self, x, y):
 
         if len(x.shape) == 2:
@@ -249,10 +251,6 @@ class StreamMask(object):
     trajectories. Streamlines are only allowed to pass through zeroed cells:
     When a streamline enters a cell, that cell is set to 1, and no new
     streamlines are allowed to enter.
-
-    Before adding a trajectory, run `_start_trajectory` to keep track of regions
-    crossed by a given trajectory. Later, if you decide the trajectory is bad
-    (e.g. if the trajectory is very short) just call `undo_trajectory`.
     """
 
     def __init__(self, density):
@@ -266,20 +264,15 @@ class StreamMask(object):
         self._mask = np.zeros((self.ny, self.nx))
         self.shape = self._mask.shape
 
-        self.current_xy = None
-
-    def __setitem__(self, *args):
-        idx, value = args
-        self._traj.append(idx)
-        self._mask.__setitem__(*args)
+        self._current_xy = None
 
     def __getitem__(self, *args):
         return self._mask.__getitem__(*args)
 
-    def _start_trajectory(self):
+    def _start_trajectory(self, xm, ym):
         """Start recording streamline trajectory"""
-        # clear any previous trajectories
         self._traj = []
+        self._update_trajectory(xm, ym)
 
     def _undo_trajectory(self):
         """Remove current trajectory from mask"""
@@ -291,10 +284,11 @@ class StreamMask(object):
 
         If the new position has already been filled, raise `InvalidIndexError`.
         """
-        if self.current_xy != (xm, ym):
+        if self._current_xy != (xm, ym):
             if self[ym, xm] == 0:
-                self[ym, xm] = 1
-                self.current_xy = (xm, ym)
+                self._traj.append((ym, xm))
+                self._mask[ym, xm] = 1
+                self._current_xy = (xm, ym)
             else:
                 raise InvalidIndexError
 
@@ -391,7 +385,6 @@ def _rk4(x0, y0, dmap, f):
             break
         if (stotal + ds) > 2:
             break
-
         stotal += ds
 
     return stotal, xf_traj, yf_traj
@@ -447,20 +440,19 @@ def _rk45(x0, y0, dmap, f):
         # Error is normalized to the axes coordinates
         error = np.sqrt(((dx5-dx4)/nx)**2 + ((dy5-dy4)/ny)**2)
 
-        # If error above tolerance, recalculate stepsize and try again.
+        # Only save step if within error tolerance
         if error < maxerror:
             xi += dx5
             yi += dy5
-
             try:
                 dmap.update_trajectory(xi, yi)
             except InvalidIndexError:
                 break
             if (stotal + ds) > 2:
                 break
-
             stotal += ds
 
+        # recalculate stepsize based on Runge-Kutta-Fehlberg method
         ds = min(maxds, 0.85 * ds * (maxerror/error)**0.2)
     return stotal, xf_traj, yf_traj
 
