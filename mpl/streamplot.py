@@ -174,8 +174,8 @@ class DomainMap(object):
 
 
 def streamplot(x, y, u, v, density=1, linewidth=1, color='k', cmap=None,
-               norm=None, vmax=None, vmin=None, arrowsize=1, arrowstyle='-|>',
-               minlength=0.1, INTEGRATOR='RK4', ax=None):
+               arrowsize=1, arrowstyle='-|>', minlength=0.1, INTEGRATOR='RK4',
+               ax=None):
     """Draws streamlines of a vector flow.
 
     Parameters
@@ -234,9 +234,7 @@ def streamplot(x, y, u, v, density=1, linewidth=1, color='k', cmap=None,
 
     # Load up the defaults - needed to get the color right.
     if type(color) == np.ndarray:
-        if vmin == None: vmin = color.min()
-        if vmax == None: vmax = color.max()
-        if norm == None: norm = matplotlib.colors.normalize
+        norm = matplotlib.colors.normalize(color.min(), color.max())
         if cmap == None: cmap = matplotlib.cm.get_cmap(
             matplotlib.rcParams['image.cmap'])
 
@@ -255,8 +253,7 @@ def streamplot(x, y, u, v, density=1, linewidth=1, color='k', cmap=None,
             arrow_kw['linewidth'] = linewidth
 
         if type(color) == np.ndarray:
-            line_kw['color'] = cmap(norm(vmin=vmin,vmax=vmax)
-                                 (interpgrid(color, tgx, tgy)[:-1]))
+            line_kw['color'] = cmap(norm(interpgrid(color, tgx, tgy)[:-1]))
             arrow_kw['color'] = line_kw['color'][len(tgx) / 2]
         else:
             line_kw['color'] = color
