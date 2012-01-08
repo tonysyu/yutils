@@ -97,6 +97,7 @@ class StreamMask(object):
             self.nx = int(25 * density[0])
             self.ny = int(25 * density[1])
         self._mask = np.zeros((self.ny, self.nx))
+        self.shape = self._mask.shape
 
         self.current_xy = None
 
@@ -150,6 +151,8 @@ class DomainMap(object):
     """
 
     def __init__(self, grid, mask):
+        self.grid = grid
+        self.mask = mask
         ## Constants for conversion between grid- and mask-coordinates
         self.x_grid2mask = float(mask.nx - 1) / grid.nx
         self.y_grid2mask = float(mask.ny - 1) / grid.ny
@@ -227,7 +230,7 @@ def streamplot(x, y, u, v, density=1, linewidth=1, color='k', cmap=None,
 
     ## A quick function for integrating trajectories if mask==0.
     trajectories = []
-    for xm, ym in _gen_starting_points(mask):
+    for xm, ym in _gen_starting_points(mask.shape):
         if mask[ym, xm] == 0:
             xg, yg = dmap.mask2grid(xm, ym)
             t = integrate(xg, yg)
@@ -301,20 +304,21 @@ def interpgrid(a, xi, yi):
     return a0 * (1 - yt) + a1 * yt
 
 
-def _gen_starting_points(mask):
+def _gen_starting_points(shape):
     """Yield starting points for streamlines"""
 
     # Trying points on the boundary first gives higher quality streamlines.
     # This algorithm starts with a point on the mask corner and spirals inward
-    # This algorithm is inefficient, but fast compared to rest of streampplot
+    # This algorithm is inefficient, but fast compared to rest of streamplot
+    ny, nx = shape
     xfirst = 0
     yfirst = 1
-    xlast = mask.nx - 1
-    ylast = mask.ny - 1
+    xlast = nx - 1
+    ylast = ny - 1
     x, y = 0, 0
     i = 0
     direction = 'right'
-    for i in xrange(mask.nx * mask.ny):
+    for i in xrange(nx * ny):
 
         yield x, y
 
@@ -361,138 +365,27 @@ def get_integrator(u, v, grid, mask, dmap, minlength, integrator):
         dxi, dyi = forward_time(xi, yi)
         return -dxi, -dyi
 
+    if integrator == 'RK4':
+        _integrate = _rk4
+    elif integrator == 'RK45':
+        _integrate = _rk45
+
     def rk4_integrate(x0, y0):
-        ## This function does RK4 forward and back trajectories from
-        ## the initial conditions, with the odd 'mask array'
-        ## termination conditions.
+        """Return x, y coordinates of trajectory based on starting point.
+
+        Integrate both forward and backward in time from starting point.
+        Integration is terminated when a trajectory reaches a domain boundary
+        or when it crosses into an already occupied cell in the StreamMask. The
+        resulting trajectory is None if it is shorter than `minlength`.
+        """
+
         mask.start_trajectory()
-
-        ## Integrator function
-        def rk4(x0, y0, f):
-            ds = 0.01 #min(1./grid.ny, 1./grid.ny, 0.01)
-            stotal = 0
-            xi = x0
-            yi = y0
-            mask.current_xy = dmap.grid2mask(xi, yi)
-            xf_traj = []
-            yf_traj = []
-
-            while grid.valid_index(xi, yi):
-                # Time step. First save the point.
-                xf_traj.append(xi)
-                yf_traj.append(yi)
-                # Next, advance one using RK4
-                try:
-                    k1x, k1y = f(xi, yi)
-                    k2x, k2y = f(xi + .5*ds*k1x, yi + .5*ds*k1y)
-                    k3x, k3y = f(xi + .5*ds*k2x, yi + .5*ds*k2y)
-                    k4x, k4y = f(xi + ds*k3x, yi + ds*k3y)
-                except IndexError:
-                    # Out of the domain on one of the intermediate steps
-                    break
-                xi += ds*(k1x+2*k2x+2*k3x+k4x) / 6.
-                yi += ds*(k1y+2*k2y+2*k3y+k4y) / 6.
-                # Final position might be out of the domain
-
-                if not grid.valid_index(xi, yi):
-                    break
-
-                try:
-                    xm, ym = dmap.grid2mask(xi, yi)
-                    mask.update_trajectory(xm, ym)
-                except MaskOccupiedError:
-                    break
-
-                if (stotal + ds) > 2:
-                    break
-                stotal += ds
-
-            return stotal, xf_traj, yf_traj
-
-        def rk45(x0, y0, f):
-            maxerror = 0.001
-            maxds = 0.03
-            ds = maxds
-            stotal = 0
-            xi = x0
-            yi = y0
-            mask.current_xy = dmap.grid2mask(xi, yi)
-            xf_traj = []
-            yf_traj = []
-
-            # RK45 coefficients (Runge-Kutta-Fehlberg method)
-            a2 = 0.25
-            a3 = (3./32, 9./32)
-            a4 = (1932./2197, -7200./2197, 7296./2197)
-            a5 = (439./216, -8, 3680./513, -845./4104)
-            a6 = (-8./27, 2, -3544./2565, 1859./4104, -11./40)
-
-            b4 = (25./216, 1408./2565, 2197./4104, -1./5)
-            b5 = (16./135, 6656./12825, 28561./56430, -9./50, 2./55)
-
-            while grid.valid_index(xi, yi):
-                xf_traj.append(xi)
-                yf_traj.append(yi)
-
-                try:
-                    k1x, k1y = f(xi, yi)
-                    k2x, k2y = f(xi + ds * a2 * k1x,
-                                 yi + ds * a2 * k1y)
-                    k3x, k3y = f(xi + ds * dot(a3, (k1x, k2x)),
-                                 yi + ds * dot(a3, (k1y, k2y)))
-                    k4x, k4y = f(xi + ds * dot(a4, (k1x, k2x, k3x)),
-                                 yi + ds * dot(a4, (k1y, k2y, k3y)))
-                    k5x, k5y = f(xi + ds * dot(a5, (k1x, k2x, k3x, k4x)),
-                                 yi + ds * dot(a5, (k1y, k2y, k3y, k4y)))
-                    k6x, k6y = f(xi + ds * dot(a6, (k1x, k2x, k3x, k4x, k5x)),
-                                 yi + ds * dot(a6, (k1y, k2y, k3y, k4y, k5y)))
-                except IndexError:
-                    # Out of the domain on one of the intermediate steps
-                    break
-
-                dx4 = ds * dot(b4, (k1x, k3x, k4x, k5x))
-                dy4 = ds * dot(b4, (k1y, k3y, k4y, k5y))
-                dx5 = ds * dot(b5, (k1x, k3x, k4x, k5x, k6x))
-                dy5 = ds * dot(b5, (k1y, k3y, k4y, k5y, k6y))
-
-                # Error is normalized to the axes coordinates
-                error = np.sqrt(((dx5-dx4)/grid.nx)**2 + ((dy5-dy4)/grid.ny)**2)
-
-                # If error above tolerance, recalculate stepsize and try again.
-                if error < maxerror:
-                    xi += dx5
-                    yi += dy5
-
-                    if not grid.valid_index(xi, yi):
-                        break
-
-                    try:
-                        xm, ym = dmap.grid2mask(xi, yi)
-                        mask.update_trajectory(xm, ym)
-                    except MaskOccupiedError:
-                        break
-
-                    if (stotal + ds) > 2:
-                        break
-                    stotal += ds
-
-                ds = min(maxds, 0.85 * ds * (maxerror/error)**0.2)
-            return stotal, xf_traj, yf_traj
-
-        if integrator == 'RK4':
-            _integrate = rk4
-        elif integrator == 'RK45':
-            _integrate = rk45
-
-        sf, xf_traj, yf_traj = _integrate(x0, y0, forward_time)
-        sb, xb_traj, yb_traj = _integrate(x0, y0, backward_time)
+        sf, xf_traj, yf_traj = _integrate(x0, y0, dmap, forward_time)
+        sb, xb_traj, yb_traj = _integrate(x0, y0, dmap, backward_time)
         # combine forward and backward trajectories
         stotal = sf + sb
         x_traj = xb_traj[::-1] + xf_traj[1:]
         y_traj = yb_traj[::-1] + yf_traj[1:]
-
-        if len(x_traj) < 1:
-            return None
 
         if stotal > minlength:
             init_xm, init_ym = dmap.grid2mask(x0, y0)
@@ -504,6 +397,120 @@ def get_integrator(u, v, grid, mask, dmap, minlength, integrator):
             return None
 
     return rk4_integrate
+
+## Integrator function
+def _rk4(x0, y0, dmap, f):
+    ds = 0.01 #min(1./grid.ny, 1./grid.ny, 0.01)
+    stotal = 0
+    xi = x0
+    yi = y0
+    dmap.mask.current_xy = dmap.grid2mask(xi, yi)
+    xf_traj = []
+    yf_traj = []
+
+    while dmap.grid.valid_index(xi, yi):
+        # Time step. First save the point.
+        xf_traj.append(xi)
+        yf_traj.append(yi)
+        # Next, advance one using RK4
+        try:
+            k1x, k1y = f(xi, yi)
+            k2x, k2y = f(xi + .5*ds*k1x, yi + .5*ds*k1y)
+            k3x, k3y = f(xi + .5*ds*k2x, yi + .5*ds*k2y)
+            k4x, k4y = f(xi + ds*k3x, yi + ds*k3y)
+        except IndexError:
+            # Out of the domain on one of the intermediate steps
+            break
+        xi += ds*(k1x+2*k2x+2*k3x+k4x) / 6.
+        yi += ds*(k1y+2*k2y+2*k3y+k4y) / 6.
+        # Final position might be out of the domain
+
+        if not dmap.grid.valid_index(xi, yi):
+            break
+
+        try:
+            xm, ym = dmap.grid2mask(xi, yi)
+            dmap.mask.update_trajectory(xm, ym)
+        except MaskOccupiedError:
+            break
+
+        if (stotal + ds) > 2:
+            break
+        stotal += ds
+
+    return stotal, xf_traj, yf_traj
+
+def _rk45(x0, y0, dmap, f):
+    maxerror = 0.001
+    maxds = 0.03
+    ds = maxds
+    stotal = 0
+    xi = x0
+    yi = y0
+    dmap.mask.current_xy = dmap.grid2mask(xi, yi)
+    xf_traj = []
+    yf_traj = []
+
+    # RK45 coefficients (Runge-Kutta-Fehlberg method)
+    a2 = 0.25
+    a3 = (3./32, 9./32)
+    a4 = (1932./2197, -7200./2197, 7296./2197)
+    a5 = (439./216, -8, 3680./513, -845./4104)
+    a6 = (-8./27, 2, -3544./2565, 1859./4104, -11./40)
+
+    b4 = (25./216, 1408./2565, 2197./4104, -1./5)
+    b5 = (16./135, 6656./12825, 28561./56430, -9./50, 2./55)
+
+    while dmap.grid.valid_index(xi, yi):
+        xf_traj.append(xi)
+        yf_traj.append(yi)
+
+        try:
+            k1x, k1y = f(xi, yi)
+            k2x, k2y = f(xi + ds * a2 * k1x,
+                         yi + ds * a2 * k1y)
+            k3x, k3y = f(xi + ds * dot(a3, (k1x, k2x)),
+                         yi + ds * dot(a3, (k1y, k2y)))
+            k4x, k4y = f(xi + ds * dot(a4, (k1x, k2x, k3x)),
+                         yi + ds * dot(a4, (k1y, k2y, k3y)))
+            k5x, k5y = f(xi + ds * dot(a5, (k1x, k2x, k3x, k4x)),
+                         yi + ds * dot(a5, (k1y, k2y, k3y, k4y)))
+            k6x, k6y = f(xi + ds * dot(a6, (k1x, k2x, k3x, k4x, k5x)),
+                         yi + ds * dot(a6, (k1y, k2y, k3y, k4y, k5y)))
+        except IndexError:
+            # Out of the domain on one of the intermediate steps
+            break
+
+        dx4 = ds * dot(b4, (k1x, k3x, k4x, k5x))
+        dy4 = ds * dot(b4, (k1y, k3y, k4y, k5y))
+        dx5 = ds * dot(b5, (k1x, k3x, k4x, k5x, k6x))
+        dy5 = ds * dot(b5, (k1y, k3y, k4y, k5y, k6y))
+
+        nx, ny = dmap.grid.shape
+        # Error is normalized to the axes coordinates
+        error = np.sqrt(((dx5-dx4)/nx)**2 + ((dy5-dy4)/ny)**2)
+
+        # If error above tolerance, recalculate stepsize and try again.
+        if error < maxerror:
+            xi += dx5
+            yi += dy5
+
+            if not dmap.grid.valid_index(xi, yi):
+                break
+
+            try:
+                xm, ym = dmap.grid2mask(xi, yi)
+                dmap.mask.update_trajectory(xm, ym)
+            except MaskOccupiedError:
+                break
+
+            if (stotal + ds) > 2:
+                break
+            stotal += ds
+
+        ds = min(maxds, 0.85 * ds * (maxerror/error)**0.2)
+    return stotal, xf_traj, yf_traj
+
 
 
 def dot(seq1, seq2):
