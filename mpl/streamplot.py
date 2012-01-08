@@ -73,7 +73,7 @@ def streamplot(x, y, u, v, density=1, linewidth=1, color='k', cmap=None,
     """
     ax = ax if ax is not None else plt.gca()
 
-    grid = Grid(x, y)
+    grid = IndexGrid(x, y)
     mask = StreamMask(density)
     dmap = DomainMap(grid, mask)
 
@@ -87,7 +87,6 @@ def streamplot(x, y, u, v, density=1, linewidth=1, color='k', cmap=None,
 
     integrate = get_integrator(u, v, dmap, minlength, integrator)
 
-    ## A quick function for integrating trajectories if mask==0.
     trajectories = []
     for xm, ym in _gen_starting_points(mask.shape):
         if mask[ym, xm] == 0:
@@ -204,7 +203,7 @@ class DomainMap(object):
         self.mask._undo_trajectory()
 
 
-class Grid(object):
+class IndexGrid(object):
     """Grid of data *indexes* (not their coordinates)."""
     def __init__(self, x, y):
 
