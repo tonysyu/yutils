@@ -367,9 +367,7 @@ def get_integrate_function(u, v, grid, mask, dmap, INTEGRATOR):
                 if not grid.valid_index(xi, yi):
                     break
 
-                stotal += ds
                 new_xm, new_ym = dmap.grid2mask(xi, yi)
-
                 if new_xm != xm or new_ym != ym:
                     if mask[new_ym, new_xm] == 0:
                         mask[new_ym, new_xm] = 1
@@ -377,8 +375,10 @@ def get_integrate_function(u, v, grid, mask, dmap, INTEGRATOR):
                         ym = new_ym
                     else:
                         break
-                if stotal > 2:
+
+                if (stotal + ds) > 2:
                     break
+                stotal += ds
 
             return stotal, xf_traj, yf_traj
 
@@ -430,6 +430,8 @@ def get_integrate_function(u, v, grid, mask, dmap, INTEGRATOR):
 
                 # Error is normalized to the axes coordinates
                 error = np.sqrt(((dx5-dx4)/grid.nx)**2 + ((dy5-dy4)/grid.ny)**2)
+
+                # If error above tolerance, recalculate stepsize and try again.
                 if error < maxerror:
                     xi += dx5
                     yi += dy5
@@ -437,9 +439,7 @@ def get_integrate_function(u, v, grid, mask, dmap, INTEGRATOR):
                     if not grid.valid_index(xi, yi):
                         break
 
-                    stotal += ds
                     new_xm, new_ym = dmap.grid2mask(xi, yi)
-
                     if new_xm != xm or new_ym != ym:
                         if mask[new_ym, new_xm] == 0:
                             mask[new_ym, new_xm] = 1
@@ -447,8 +447,10 @@ def get_integrate_function(u, v, grid, mask, dmap, INTEGRATOR):
                             ym = new_ym
                         else:
                             break
-                    if stotal > 2:
+
+                    if (stotal + ds) > 2:
                         break
+                    stotal += ds
 
                 ds = min(maxds, 0.85 * ds * (maxerror/error)**0.2)
             return stotal, xf_traj, yf_traj
