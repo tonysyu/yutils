@@ -174,7 +174,7 @@ class DomainMap(object):
 
 
 def streamplot(x, y, u, v, density=1, linewidth=1, color='k', cmap=None,
-               arrowsize=1, arrowstyle='-|>', minlength=0.1, INTEGRATOR='RK4',
+               arrowsize=1, arrowstyle='-|>', minlength=0.1, integrator='RK4',
                ax=None):
     """Draws streamlines of a vector flow.
 
@@ -205,8 +205,10 @@ def streamplot(x, y, u, v, density=1, linewidth=1, color='k', cmap=None,
         Arrow style specification. See `matplotlib.patches.FancyArrowPatch`.
     minlength : float
         Minimum length of streamline in axes coordinates.
-
-    INTEGRATOR is experimental. Currently, RK4 should be used.
+    integrator : {'RK4'|'RK45'}
+        Integration scheme.
+            RK4 = 4th-order Runge-Kutta
+            RK45 = adaptive-step Runge-Kutta-Fehlberg
     """
     ax = ax if ax is not None else plt.gca()
 
@@ -222,7 +224,7 @@ def streamplot(x, y, u, v, density=1, linewidth=1, color='k', cmap=None,
     if type(color) == np.ndarray:
         assert color.shape == grid.shape
 
-    integrate = get_integrator(u, v, grid, mask, dmap, minlength, INTEGRATOR)
+    integrate = get_integrator(u, v, grid, mask, dmap, minlength, integrator)
 
     ## A quick function for integrating trajectories if mask==0.
     trajectories = []
@@ -338,7 +340,7 @@ def _gen_starting_points(mask):
                 direction = 'right'
 
 
-def get_integrator(u, v, grid, mask, dmap, minlength, INTEGRATOR):
+def get_integrator(u, v, grid, mask, dmap, minlength, integrator):
 
     # rescale velocity onto grid-coordinates for integrations.
     u, v = dmap.data2grid(u, v)
@@ -475,13 +477,13 @@ def get_integrator(u, v, grid, mask, dmap, minlength, INTEGRATOR):
                 ds = min(maxds, 0.85 * ds * (maxerror/error)**0.2)
             return stotal, xf_traj, yf_traj
 
-        if INTEGRATOR == 'RK4':
-            integrator = rk4
-        elif INTEGRATOR == 'RK45':
-            integrator = rk45
+        if integrator == 'RK4':
+            integrate = rk4
+        elif integrator == 'RK45':
+            integrate = rk45
 
-        sf, xf_traj, yf_traj = integrator(x0, y0, forward_time)
-        sb, xb_traj, yb_traj = integrator(x0, y0, backward_time)
+        sf, xf_traj, yf_traj = integrate(x0, y0, forward_time)
+        sb, xb_traj, yb_traj = integrate(x0, y0, backward_time)
         # combine forward and backward trajectories
         stotal = sf + sb
         x_traj = xb_traj[::-1] + xf_traj[1:]
@@ -522,7 +524,7 @@ def test():
     streamplot(x, y, u, v, density=1, color='b', ax=axes[0])
     lw = 5*speed/speed.max()
     streamplot(x, y, u, v, density=(1,1), color=u, linewidth=lw, ax=axes[1])
-    streamplot(x, y, u, v, density=(1,1), INTEGRATOR='RK45', ax=axes[2])
+    streamplot(x, y, u, v, density=(1,1), integrator='RK45', ax=axes[2])
     # test x, y matrices
     X = np.repeat(x.reshape(1, 100), 100, axis=0)
     Y = np.repeat(y.reshape(100, 1), 100, axis=1)
