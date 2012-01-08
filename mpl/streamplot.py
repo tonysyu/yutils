@@ -382,14 +382,6 @@ def get_integrate_function(u, v, grid, mask, dmap, INTEGRATOR):
 
             return stotal, xf_traj, yf_traj
 
-        ## Alternative Integrator function
-
-        ## RK45 does not really help in it's current state. The
-        ## resulting trajectories are accurate but low-resolution in
-        ## regions of high curvature and thus fairly ugly. Maybe a
-        ## curvature based cap on the maximum ds permitted is the way
-        ## forward.
-
         def rk45(x0, y0, f):
             maxerror = 0.001
             maxds = 0.03
@@ -458,17 +450,6 @@ def get_integrate_function(u, v, grid, mask, dmap, INTEGRATOR):
                     if stotal > 2:
                         break
 
-                # Use small steps when curvature is high
-                if len(xf_traj) > 2:
-                    v1 = np.array((xf_traj[-1]-xf_traj[-2],
-                                   yf_traj[-1]-yf_traj[-2]))
-                    v2 = np.array((xf_traj[-2]-xf_traj[-3],
-                                   yf_traj[-2]-yf_traj[-3]))
-                    costheta = (v1/np.sqrt((v1**2).sum()) *
-                                v2/np.sqrt((v2**2).sum())).sum()
-                    if costheta < .8:
-                        ds = .01
-                        continue
                 ds = min(maxds, 0.85 * ds * (maxerror/error)**0.2)
             return stotal, xf_traj, yf_traj
 
