@@ -21,8 +21,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 """
-#TODO: Make DomainMap the only interface for coordinate systems.
-#      It would then communicate with grid and mask.
 
 from operator import mul
 from itertools import imap
@@ -87,7 +85,7 @@ def streamplot(x, y, u, v, density=1, linewidth=1, color='k', cmap=None,
     if type(color) == np.ndarray:
         assert color.shape == grid.shape
 
-    integrate = get_integrator(u, v, grid, dmap, minlength, integrator)
+    integrate = get_integrator(u, v, dmap, minlength, integrator)
 
     ## A quick function for integrating trajectories if mask==0.
     trajectories = []
@@ -309,14 +307,14 @@ class InvalidIndexError(Exception):
 # Integrator definitions
 #========================
 
-def get_integrator(u, v, grid, dmap, minlength, integrator):
+def get_integrator(u, v, dmap, minlength, integrator):
 
     # rescale velocity onto grid-coordinates for integrations.
     u, v = dmap.data2grid(u, v)
 
     # speed (path length) will be in axes-coordinates
-    u_ax = u / grid.nx
-    v_ax = v / grid.ny
+    u_ax = u / dmap.grid.nx
+    v_ax = v / dmap.grid.ny
     speed = np.sqrt(u_ax**2 + v_ax**2)
 
     def forward_time(xi, yi):
