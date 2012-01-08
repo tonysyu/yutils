@@ -37,144 +37,6 @@ import matplotlib.patches as mpp
 __all__ = ['streamplot']
 
 
-class Grid(object):
-    def __init__(self, x, y):
-
-        if len(x.shape) == 2:
-            x_row = x[0]
-            assert np.allclose(x_row, x)
-            x = x_row
-        else:
-            assert len(x.shape) == 1
-
-        if len(y.shape) == 2:
-            y_col = y[:, 0]
-            assert np.allclose(y_col, y.T)
-            y = y_col
-        else:
-            assert len(y.shape) == 1
-
-        self.nx = len(x)
-        self.ny = len(y)
-
-        self.dx = x[1] - x[0]
-        self.dy = y[1] - y[0]
-
-        self.x_origin = x[0]
-        self.y_origin = y[0]
-
-        self.width = x[-1] - x[0]
-        self.height = y[-1] - y[0]
-
-    @property
-    def shape(self):
-        return self.ny, self.nx
-
-    def valid_index(self, xi, yi):
-        """Return True if point is a valid index of grid."""
-        return xi >= 0 and xi < self.nx and yi >= 0 and yi < self.ny
-
-
-class StreamMask(object):
-    """Mask to keep track of discrete regions crossed by streamlines.
-
-    The resolution of this grid determines the approximate spacing between
-    trajectories. Streamlines are only allowed to pass through zeroed cells:
-    When a streamline enters a cell, that cell is set to 1, and no new
-    streamlines are allowed to enter.
-
-    Before adding a trajectory, run `start_trajectory` to keep track of regions
-    crossed by a given trajectory. Later, if you decide the trajectory is bad
-    (e.g. if the trajectory is very short) just call `undo_trajectory`.
-    """
-
-    def __init__(self, density):
-        if type(density) == float or type(density) == int:
-            assert density > 0
-            self.nx = self.ny = int(30 * density)
-        else:
-            assert len(density) > 0
-            self.nx = int(25 * density[0])
-            self.ny = int(25 * density[1])
-        self._mask = np.zeros((self.ny, self.nx))
-        self.shape = self._mask.shape
-
-        self.current_xy = None
-
-    def __setitem__(self, *args):
-        idx, value = args
-        self._traj.append(idx)
-        self._mask.__setitem__(*args)
-
-    def __getitem__(self, *args):
-        return self._mask.__getitem__(*args)
-
-    def start_trajectory(self):
-        """Start recording streamline trajectory"""
-        # clear any previous trajectories
-        self._traj = []
-
-    def undo_trajectory(self):
-        """Remove current trajectory from mask"""
-        for t in self._traj:
-            self._mask.__setitem__(t, 0)
-
-    def update_trajectory(self, xm, ym):
-        """Update current trajectory position in mask.
-
-        If the new position has already been filled, raise `MaskOccupiedError`.
-        """
-        if self.current_xy != (xm, ym):
-            if self[ym, xm] == 0:
-                self[ym, xm] = 1
-                self.current_xy = (xm, ym)
-            else:
-                raise MaskOccupiedError
-
-
-class MaskOccupiedError(Exception):
-    pass
-
-
-class DomainMap(object):
-    """Map representing different coordinate systems.
-
-    Coordinate definitions:
-
-    * axes-coordinates goes from 0 to 1 in the domain.
-    * data-coordinates are specified by the input x-y coordinates.
-    * grid-coordinates goes from 0 to N and 0 to M for an N x M grid,
-      where N and M match the shape of the input data.
-    * mask-coordinates goes from 0 to N and 0 to M for an N x M mask,
-      where N and M are user-specified to control the density of streamlines.
-
-    """
-
-    def __init__(self, grid, mask):
-        self.grid = grid
-        self.mask = mask
-        ## Constants for conversion between grid- and mask-coordinates
-        self.x_grid2mask = float(mask.nx - 1) / grid.nx
-        self.y_grid2mask = float(mask.ny - 1) / grid.ny
-
-        self.x_mask2grid = 1. / self.x_grid2mask
-        self.y_mask2grid = 1. / self.y_grid2mask
-
-        self.x_data2grid = grid.nx / grid.width
-        self.y_data2grid = grid.ny / grid.height
-
-    def grid2mask(self, xi, yi):
-        """Return nearest space in mask-coords from given grid-coords."""
-        return int((xi * self.x_grid2mask) + 0.5), \
-               int((yi * self.y_grid2mask) + 0.5)
-
-    def mask2grid(self, xm, ym):
-        return xm * self.x_mask2grid, ym * self.y_mask2grid
-
-    def data2grid(self, xd, yd):
-        return xd * self.x_data2grid, yd * self.y_data2grid
-
-
 def streamplot(x, y, u, v, density=1, linewidth=1, color='k', cmap=None,
                arrowsize=1, arrowstyle='-|>', minlength=0.1, integrator='RK4',
                ax=None):
@@ -285,64 +147,149 @@ def streamplot(x, y, u, v, density=1, linewidth=1, color='k', cmap=None,
     return
 
 
-def interpgrid(a, xi, yi):
-    """Fast 2D, linear interpolation on an integer grid"""
-    if type(xi) == np.ndarray:
-        x = xi.astype(np.int)
-        y = yi.astype(np.int)
-    else:
-        x = np.int(xi)
-        y = np.int(yi)
-    a00 = a[y, x]
-    a01 = a[y, x + 1]
-    a10 = a[y + 1, x]
-    a11 = a[y + 1, x + 1]
-    xt = xi - x
-    yt = yi - y
-    a0 = a00 * (1 - xt) + a01 * xt
-    a1 = a10 * (1 - xt) + a11 * xt
-    return a0 * (1 - yt) + a1 * yt
+# Coordinate definitions
+#========================
+
+class DomainMap(object):
+    """Map representing different coordinate systems.
+
+    Coordinate definitions:
+
+    * axes-coordinates goes from 0 to 1 in the domain.
+    * data-coordinates are specified by the input x-y coordinates.
+    * grid-coordinates goes from 0 to N and 0 to M for an N x M grid,
+      where N and M match the shape of the input data.
+    * mask-coordinates goes from 0 to N and 0 to M for an N x M mask,
+      where N and M are user-specified to control the density of streamlines.
+
+    """
+
+    def __init__(self, grid, mask):
+        self.grid = grid
+        self.mask = mask
+        ## Constants for conversion between grid- and mask-coordinates
+        self.x_grid2mask = float(mask.nx - 1) / grid.nx
+        self.y_grid2mask = float(mask.ny - 1) / grid.ny
+
+        self.x_mask2grid = 1. / self.x_grid2mask
+        self.y_mask2grid = 1. / self.y_grid2mask
+
+        self.x_data2grid = grid.nx / grid.width
+        self.y_data2grid = grid.ny / grid.height
+
+    def grid2mask(self, xi, yi):
+        """Return nearest space in mask-coords from given grid-coords."""
+        return int((xi * self.x_grid2mask) + 0.5), \
+               int((yi * self.y_grid2mask) + 0.5)
+
+    def mask2grid(self, xm, ym):
+        return xm * self.x_mask2grid, ym * self.y_mask2grid
+
+    def data2grid(self, xd, yd):
+        return xd * self.x_data2grid, yd * self.y_data2grid
 
 
-def _gen_starting_points(shape):
-    """Yield starting points for streamlines"""
+class Grid(object):
+    def __init__(self, x, y):
 
-    # Trying points on the boundary first gives higher quality streamlines.
-    # This algorithm starts with a point on the mask corner and spirals inward
-    # This algorithm is inefficient, but fast compared to rest of streamplot
-    ny, nx = shape
-    xfirst = 0
-    yfirst = 1
-    xlast = nx - 1
-    ylast = ny - 1
-    x, y = 0, 0
-    i = 0
-    direction = 'right'
-    for i in xrange(nx * ny):
+        if len(x.shape) == 2:
+            x_row = x[0]
+            assert np.allclose(x_row, x)
+            x = x_row
+        else:
+            assert len(x.shape) == 1
 
-        yield x, y
+        if len(y.shape) == 2:
+            y_col = y[:, 0]
+            assert np.allclose(y_col, y.T)
+            y = y_col
+        else:
+            assert len(y.shape) == 1
 
-        if direction == 'right':
-            x += 1
-            if x >= xlast:
-                xlast -=1
-                direction = 'up'
-        elif direction == 'up':
-            y += 1
-            if y >= ylast:
-                ylast -=1
-                direction = 'left'
-        elif direction == 'left':
-            x -= 1
-            if x <= xfirst:
-                xfirst +=1
-                direction = 'down'
-        elif direction == 'down':
-            y -= 1
-            if y <= yfirst:
-                yfirst +=1
-                direction = 'right'
+        self.nx = len(x)
+        self.ny = len(y)
 
+        self.dx = x[1] - x[0]
+        self.dy = y[1] - y[0]
+
+        self.x_origin = x[0]
+        self.y_origin = y[0]
+
+        self.width = x[-1] - x[0]
+        self.height = y[-1] - y[0]
+
+    @property
+    def shape(self):
+        return self.ny, self.nx
+
+    def valid_index(self, xi, yi):
+        """Return True if point is a valid index of grid."""
+        return xi >= 0 and xi < self.nx and yi >= 0 and yi < self.ny
+
+
+class StreamMask(object):
+    """Mask to keep track of discrete regions crossed by streamlines.
+
+    The resolution of this grid determines the approximate spacing between
+    trajectories. Streamlines are only allowed to pass through zeroed cells:
+    When a streamline enters a cell, that cell is set to 1, and no new
+    streamlines are allowed to enter.
+
+    Before adding a trajectory, run `start_trajectory` to keep track of regions
+    crossed by a given trajectory. Later, if you decide the trajectory is bad
+    (e.g. if the trajectory is very short) just call `undo_trajectory`.
+    """
+
+    def __init__(self, density):
+        if type(density) == float or type(density) == int:
+            assert density > 0
+            self.nx = self.ny = int(30 * density)
+        else:
+            assert len(density) > 0
+            self.nx = int(25 * density[0])
+            self.ny = int(25 * density[1])
+        self._mask = np.zeros((self.ny, self.nx))
+        self.shape = self._mask.shape
+
+        self.current_xy = None
+
+    def __setitem__(self, *args):
+        idx, value = args
+        self._traj.append(idx)
+        self._mask.__setitem__(*args)
+
+    def __getitem__(self, *args):
+        return self._mask.__getitem__(*args)
+
+    def start_trajectory(self):
+        """Start recording streamline trajectory"""
+        # clear any previous trajectories
+        self._traj = []
+
+    def undo_trajectory(self):
+        """Remove current trajectory from mask"""
+        for t in self._traj:
+            self._mask.__setitem__(t, 0)
+
+    def update_trajectory(self, xm, ym):
+        """Update current trajectory position in mask.
+
+        If the new position has already been filled, raise `MaskOccupiedError`.
+        """
+        if self.current_xy != (xm, ym):
+            if self[ym, xm] == 0:
+                self[ym, xm] = 1
+                self.current_xy = (xm, ym)
+            else:
+                raise MaskOccupiedError
+
+
+class MaskOccupiedError(Exception):
+    pass
+
+
+# Integrator definitions
+#========================
 
 def get_integrator(u, v, grid, mask, dmap, minlength, integrator):
 
@@ -398,8 +345,9 @@ def get_integrator(u, v, grid, mask, dmap, minlength, integrator):
 
     return rk4_integrate
 
-## Integrator function
+
 def _rk4(x0, y0, dmap, f):
+    """4th-order Runge-Kutta algorithm with fixed step size"""
     ds = 0.01 #min(1./grid.ny, 1./grid.ny, 0.01)
     stotal = 0
     xi = x0
@@ -440,7 +388,9 @@ def _rk4(x0, y0, dmap, f):
 
     return stotal, xf_traj, yf_traj
 
+
 def _rk45(x0, y0, dmap, f):
+    """5th-order Runge-Kutta algorithm with adaptive step size"""
     maxerror = 0.001
     maxds = 0.03
     ds = maxds
@@ -512,6 +462,27 @@ def _rk45(x0, y0, dmap, f):
     return stotal, xf_traj, yf_traj
 
 
+# Utility functions
+#========================
+
+def interpgrid(a, xi, yi):
+    """Fast 2D, linear interpolation on an integer grid"""
+    if type(xi) == np.ndarray:
+        x = xi.astype(np.int)
+        y = yi.astype(np.int)
+    else:
+        x = np.int(xi)
+        y = np.int(yi)
+    a00 = a[y, x]
+    a01 = a[y, x + 1]
+    a10 = a[y + 1, x]
+    a11 = a[y + 1, x + 1]
+    xt = xi - x
+    yt = yi - y
+    a0 = a00 * (1 - xt) + a01 * xt
+    a1 = a10 * (1 - xt) + a11 * xt
+    return a0 * (1 - yt) + a1 * yt
+
 
 def dot(seq1, seq2):
     """Dot product of two sequences.
@@ -519,6 +490,46 @@ def dot(seq1, seq2):
     For short sequences, this is faster than transforming to numpy arrays.
     """
     return sum(imap(mul, seq1, seq2))
+
+
+def _gen_starting_points(shape):
+    """Yield starting points for streamlines"""
+
+    # Trying points on the boundary first gives higher quality streamlines.
+    # This algorithm starts with a point on the mask corner and spirals inward
+    # This algorithm is inefficient, but fast compared to rest of streamplot
+    ny, nx = shape
+    xfirst = 0
+    yfirst = 1
+    xlast = nx - 1
+    ylast = ny - 1
+    x, y = 0, 0
+    i = 0
+    direction = 'right'
+    for i in xrange(nx * ny):
+
+        yield x, y
+
+        if direction == 'right':
+            x += 1
+            if x >= xlast:
+                xlast -=1
+                direction = 'up'
+        elif direction == 'up':
+            y += 1
+            if y >= ylast:
+                ylast -=1
+                direction = 'left'
+        elif direction == 'left':
+            x -= 1
+            if x <= xfirst:
+                xfirst +=1
+                direction = 'down'
+        elif direction == 'down':
+            y -= 1
+            if y <= yfirst:
+                yfirst +=1
+                direction = 'right'
 
 
 def test():
