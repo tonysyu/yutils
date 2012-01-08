@@ -478,12 +478,12 @@ def get_integrator(u, v, grid, mask, dmap, minlength, integrator):
             return stotal, xf_traj, yf_traj
 
         if integrator == 'RK4':
-            integrate = rk4
+            _integrate = rk4
         elif integrator == 'RK45':
-            integrate = rk45
+            _integrate = rk45
 
-        sf, xf_traj, yf_traj = integrate(x0, y0, forward_time)
-        sb, xb_traj, yb_traj = integrate(x0, y0, backward_time)
+        sf, xf_traj, yf_traj = _integrate(x0, y0, forward_time)
+        sb, xb_traj, yb_traj = _integrate(x0, y0, backward_time)
         # combine forward and backward trajectories
         stotal = sf + sb
         x_traj = xb_traj[::-1] + xf_traj[1:]
