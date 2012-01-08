@@ -379,6 +379,7 @@ def get_integrate_function(u, v, grid, mask, dmap, INTEGRATOR):
                         break
                 if stotal > 2:
                     break
+
             return stotal, xf_traj, yf_traj
 
         ## Alternative Integrator function
@@ -392,7 +393,7 @@ def get_integrate_function(u, v, grid, mask, dmap, INTEGRATOR):
         def rk45(x0, y0, f):
             maxerror = 0.001
             maxds = 0.03
-            ds = 0.03
+            ds = maxds
             stotal = 0
             xi = x0
             yi = y0
@@ -400,7 +401,7 @@ def get_integrate_function(u, v, grid, mask, dmap, INTEGRATOR):
             xf_traj = []
             yf_traj = []
 
-            # RK45 coefficients
+            # RK45 coefficients (Runge-Kutta-Fehlberg method)
             a2 = 0.25
             a3 = (3./32, 9./32)
             a4 = (1932./2197, -7200./2197, 7296./2197)
@@ -446,9 +447,10 @@ def get_integrate_function(u, v, grid, mask, dmap, INTEGRATOR):
 
                     stotal += ds
                     new_xm, new_ym = dmap.grid2mask(xi, yi)
+
                     if new_xm != xm or new_ym != ym:
-                        if mask[new_ym,new_xm] == 0:
-                            mask[new_ym,new_xm] = 1
+                        if mask[new_ym, new_xm] == 0:
+                            mask[new_ym, new_xm] = 1
                             xm = new_xm
                             ym = new_ym
                         else:
@@ -467,8 +469,7 @@ def get_integrate_function(u, v, grid, mask, dmap, INTEGRATOR):
                     if costheta < .8:
                         ds = .01
                         continue
-
-                ds = min(maxds, 0.85*ds*(maxerror/error)**.2)
+                ds = min(maxds, 0.85 * ds * (maxerror/error)**0.2)
             return stotal, xf_traj, yf_traj
 
         if INTEGRATOR == 'RK4':
