@@ -22,8 +22,10 @@ THE SOFTWARE.
 
 """
 #TODO: simplify integration loops
-
-version = '4'
+#TODO: Consider changing mask behavior so that cell is set when a streamline
+#      enters the cell (currently, only starting points set a cell).
+#TODO: Make DomainMap the only interface for coordinate systems.
+#      It would then communicate with grid and mask.
 
 from operator import mul
 from itertools import imap
@@ -489,12 +491,12 @@ def get_integrator(u, v, grid, mask, dmap, minlength, integrator):
         if len(x_traj) < 1:
             return None
 
-        # Reject short trajectories (`s` is in axes-coordinates)
         if stotal > minlength:
-            initxb, inityb = dmap.grid2mask(x0, y0)
-            mask[inityb, initxb] = 1
+            init_xm, init_ym = dmap.grid2mask(x0, y0)
+            mask[init_ym, init_xm] = 1
             return x_traj, y_traj
         else:
+            # Reject short trajectories (`s` is in axes-coordinates)
             mask.undo_trajectory()
             return None
 
