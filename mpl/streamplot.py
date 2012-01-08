@@ -96,6 +96,8 @@ class StreamMask(object):
             self.ny = int(30 * density[1])
         self._mask = np.zeros((self.ny, self.nx))
 
+        self.current_xy = None
+
     def __setitem__(self, *args):
         idx, value = args
         self._traj.append(idx)
@@ -115,6 +117,23 @@ class StreamMask(object):
     def valid_index(self, x, y):
         """Return True if point is a valid index of mask."""
         return x >= 0 and x < self.nx and y >= 0 and y < self.ny
+
+    def update_current_xy(self, xy):
+        """Update current position in mask.
+
+        If the new position has already been filled, raise `MaskOccupiedError`.
+        """
+        if self.current_xy != xy:
+            new_xm, new_ym = xy
+            if self[new_ym, new_xm] == 0:
+                self[new_ym, new_xm] = 1
+                self.current_xy = xy
+            else:
+                raise MaskOccupiedError
+
+
+class MaskOccupiedError(Exception):
+    pass
 
 
 class DomainMap(object):
@@ -343,7 +362,7 @@ def get_integrate_function(u, v, grid, mask, dmap, INTEGRATOR):
             stotal = 0
             xi = x0
             yi = y0
-            xm, ym = dmap.grid2mask(xi, yi)
+            mask.current_xy = dmap.grid2mask(xi, yi)
             xf_traj = []
             yf_traj = []
 
@@ -367,14 +386,10 @@ def get_integrate_function(u, v, grid, mask, dmap, INTEGRATOR):
                 if not grid.valid_index(xi, yi):
                     break
 
-                new_xm, new_ym = dmap.grid2mask(xi, yi)
-                if new_xm != xm or new_ym != ym:
-                    if mask[new_ym, new_xm] == 0:
-                        mask[new_ym, new_xm] = 1
-                        xm = new_xm
-                        ym = new_ym
-                    else:
-                        break
+                try:
+                    mask.update_current_xy(dmap.grid2mask(xi, yi))
+                except MaskOccupiedError:
+                    break
 
                 if (stotal + ds) > 2:
                     break
@@ -389,7 +404,7 @@ def get_integrate_function(u, v, grid, mask, dmap, INTEGRATOR):
             stotal = 0
             xi = x0
             yi = y0
-            xm, ym = dmap.grid2mask(xi, yi)
+            mask.current_xy = dmap.grid2mask(xi, yi)
             xf_traj = []
             yf_traj = []
 
@@ -439,14 +454,10 @@ def get_integrate_function(u, v, grid, mask, dmap, INTEGRATOR):
                     if not grid.valid_index(xi, yi):
                         break
 
-                    new_xm, new_ym = dmap.grid2mask(xi, yi)
-                    if new_xm != xm or new_ym != ym:
-                        if mask[new_ym, new_xm] == 0:
-                            mask[new_ym, new_xm] = 1
-                            xm = new_xm
-                            ym = new_ym
-                        else:
-                            break
+                    try:
+                        mask.update_current_xy(dmap.grid2mask(xi, yi))
+                    except MaskOccupiedError:
+                        break
 
                     if (stotal + ds) > 2:
                         break
