@@ -75,6 +75,27 @@ def twocolumn(figaspect=1.35):
     publication(APS_TWO_COLUMN_WIDTH_INCHES, figaspect=figaspect)
 
 
+def langmuir(figaspect=1.35, width_factor=1.0, fullwidth=False):
+    """Style settings for Langmuir.
+
+    Parameters
+    ----------
+    figaspect : float
+        Aspect ratio (width / height) of figure.
+    width_factor : float
+        Figure width is the column width or full (two-column) width times this
+        `width_factor`.
+    fullwidth : bool
+        If False, set figure width for single column.
+    """
+    if fullwidth:
+        width = 7.0 * width_factor
+    else:
+        width = 3.25 * width_factor
+    publication(width=width, figaspect=figaspect)
+    plt.rc('font', family='serif')
+
+
 def pof(figaspect=1.35, fullwidth=False):
     width = APS_TWO_COLUMN_WIDTH_INCHES
     if fullwidth:
