@@ -23,15 +23,22 @@ class MeasureLengthTool(BaseTool):
     color : matplotlib.colors
         Line color.
 
+    alpha : 0 < float <= 1
+        Alpha value (i.e. opacity) of rectangle.
+
+    message : str
+        Format string for printing length. `str.format(length)` will be called
+        on this string. If None, no message is printed.
+
     Attributes
     ----------
     length : float
         Length of selected line.
     """
 
-    _message = 'Selected length: %g pixels'
+    _message = 'Selected length: {0:g} pixels'
 
-    def __init__(self, ax, color='k', message='default'):
+    def __init__(self, ax, color='r', alpha=0.5, message='default'):
 
         BaseTool.__init__(self, ax)
 
@@ -40,7 +47,7 @@ class MeasureLengthTool(BaseTool):
         self.connect('button_press_event', self.onpress)
         self.connect('button_release_event', self.onrelease)
         self.connect('motion_notify_event', self.onmove)
-        self.line, = ax.plot((0, 0), (0, 0), color=color)
+        self.line, = ax.plot((0, 0), (0, 0), color=color, alpha=alpha)
         self.pressevent = None
 
     def onpress(self, event):
@@ -60,7 +67,7 @@ class MeasureLengthTool(BaseTool):
         y1 = event.ydata
         self.length = np.sqrt((x1 - self.x0)**2 + (y1 - self.y0)**2)
         if self.message is not None:
-            print self.message % self.length
+            print self.message.format(self.length)
 
     def onmove(self, event):
         if self.pressevent is None or event.inaxes!=self.pressevent.inaxes:

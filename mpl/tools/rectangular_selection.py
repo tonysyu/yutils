@@ -1,3 +1,4 @@
+import warnings
 import matplotlib.patches as mp
 
 from base import BaseTool
@@ -18,8 +19,22 @@ class RectangularSelection(BaseTool):
     ----------
     ax : matplotlib.axes.Axes
 
-    color : matplotlib.colors
+    edgecolor : matplotlib.colors
         Edge color of rectangle.
+
+    facecolor : matplotlib.colors
+        Edge color of rectangle.
+
+    alpha : 0 < float <= 1
+        Alpha value (i.e. opacity) of rectangle.
+
+    message : str
+        Format string for printing rectangle extents. `str.format()` will be
+        called on this string, with 'xmin', 'xmax', 'ymin', 'ymax' keys.
+        If None, no message is printed.
+
+    color : matplotlib.colors
+        Edge color of rectangle. (Deprecated)
 
     Attributes
     ----------
@@ -33,10 +48,13 @@ class RectangularSelection(BaseTool):
     _message = ("Selected extents: xmin={xmin:.3g}, xmax={xmax:.3g},"
                                  " ymin={ymin:.3g}, ymax={ymax:.3g}")
 
-    def __init__(self, ax, color='k', message='default'):
+    def __init__(self, ax, edgecolor='k', facecolor='b', alpha=0.2,
+                 message='default', color=None):
 
         BaseTool.__init__(self, ax)
 
+        if color is not None:
+            warnings.warn("`color` parameter deprected, use `edgecolor`")
         self.message = self._message if message == 'default' else message
 
         self.connect('button_press_event', self.onpress)
@@ -47,7 +65,8 @@ class RectangularSelection(BaseTool):
         self.y0 = 0
         self.x1 = 0
         self.y1 = 0
-        self.rect = mp.Rectangle((0, 0), 0, 0, ec=color, fc='none')
+        self.rect = mp.Rectangle((0, 0), 0, 0, ec=color, fc=facecolor,
+                                 alpha=alpha)
         self.ax.add_patch(self.rect)
 
         self.pressevent = None

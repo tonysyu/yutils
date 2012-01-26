@@ -15,6 +15,15 @@ class GridTool(BaseTool):
     tolerance : float
         Select line if mouse click is within `tolerance` pixels.
 
+    color : matplotlib.colors
+        Line color.
+
+    alpha : 0 < float <= 1
+        Alpha value (i.e. opacity) of rectangle.
+
+    lineweight : float
+        Line weight.
+
     Key-bindings
     ------------
     'h' : Add horizontal line.
