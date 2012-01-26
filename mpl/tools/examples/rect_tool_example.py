@@ -11,3 +11,4 @@ plt.imshow(np.random.random((20, 20)), interpolation='nearest')
 rect = RectangularSelection(ax)
 plt.draw()
 raw_input('enter to continue\n')
+
