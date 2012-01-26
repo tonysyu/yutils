@@ -84,9 +84,9 @@ class GridTool(BaseTool):
             return
 
         if self.active_line in self.hlines:
-            self.active_line.set_ydata(event.ydata)
+            self.active_line.set_ydata([event.ydata, event.ydata])
         elif self.active_line in self.vlines:
-            self.active_line.set_xdata(event.xdata)
+            self.active_line.set_xdata([event.xdata, event.xdata])
         else:
             raise Exception("Unregistered artist selected")
 
