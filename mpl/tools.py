@@ -6,6 +6,22 @@ __all__ = ['MeasureLengthTool', 'RectangularSelection']
 
 
 class MeasureLengthTool(object):
+    """Tool for measuring lengths in a plot.
+
+    This tool prints the selected length and stores it as an attribute.
+
+    Parameters
+    ----------
+    ax : matplotlib.axes.Axes
+
+    color : matplotlib.colors
+        Line color.
+
+    Attributes
+    ----------
+    length : float
+        Length of selected line.
+    """
     def __init__(self, ax, color='k'):
         fig = ax.figure
         connect = fig.canvas.mpl_connect
@@ -51,6 +67,26 @@ class MeasureLengthTool(object):
 
 
 class RectangularSelection(object):
+    """Tool for measuring rectangular regions in a plot.
+
+    This tool prints the (xmin, xmax, ymin, ymax) values of selected selected.
+    These values are also stored in the attributes.
+
+    Parameters
+    ----------
+    ax : matplotlib.axes.Axes
+
+    color : matplotlib.colors
+        Edge color of rectangle.
+
+    Attributes
+    ----------
+    xmin, xmax: float
+        Minimum and maximum x-values of selected rectangle.
+
+    ymin, ymax: float
+        Minimum and maximum y-values of selected rectangle.
+    """
     def __init__(self, ax, color='k'):
         fig = ax.figure
         connect = fig.canvas.mpl_connect
