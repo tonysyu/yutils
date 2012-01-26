@@ -8,7 +8,12 @@ __all__ = ['MeasureLengthTool', 'RectangularSelection']
 class MeasureLengthTool(object):
     """Tool for measuring lengths in a plot.
 
-    This tool prints the selected length and stores it as an attribute.
+    Select a point in the axes and drag to measure a length; print the selected
+    length when the mouse is released. The last length is stored as an
+    attribute.
+
+    Fixme: Adding a line to an image plot tends to pad images, which leaves
+           ugly whitespace.
 
     Parameters
     ----------
@@ -22,7 +27,13 @@ class MeasureLengthTool(object):
     length : float
         Length of selected line.
     """
-    def __init__(self, ax, color='k'):
+
+    _message = 'Selected length: %g pixels'
+
+    def __init__(self, ax, color='k', message='default'):
+
+        self.message = self._message if message == 'default' else message
+
         fig = ax.figure
         connect = fig.canvas.mpl_connect
         self.cids = []
@@ -50,7 +61,8 @@ class MeasureLengthTool(object):
         x1 = event.xdata
         y1 = event.ydata
         self.length = np.sqrt((x1 - self.x0)**2 + (y1 - self.y0)**2)
-        print 'Selected length: %s pixels' % self.length
+        if self.message is not None:
+            print self.message % self.length
 
     def onmove(self, event):
         if self.pressevent is None or event.inaxes!=self.pressevent.inaxes:
@@ -69,8 +81,10 @@ class MeasureLengthTool(object):
 class RectangularSelection(object):
     """Tool for measuring rectangular regions in a plot.
 
-    This tool prints the (xmin, xmax, ymin, ymax) values of selected selected.
-    These values are also stored in the attributes.
+    Select a point in the axes to set one corner of a rectangle and drag to
+    opposite corner; print the rectangle extents (xmin, xmax, ymin, ymax) when
+    the mouse is released. The last length is stored as an attribute.  The
+    extents are also stored in the attributes.
 
     Parameters
     ----------
@@ -87,7 +101,14 @@ class RectangularSelection(object):
     ymin, ymax: float
         Minimum and maximum y-values of selected rectangle.
     """
-    def __init__(self, ax, color='k'):
+
+    _message = ("Selected extents: xmin={xmin:.3g}, xmax={xmax:.3g},"
+                                 " ymin={ymin:.3g}, ymax={ymax:.3g}")
+
+    def __init__(self, ax, color='k', message='default'):
+
+        self.message = self._message if message == 'default' else message
+
         fig = ax.figure
         connect = fig.canvas.mpl_connect
         self.cids = []
@@ -126,8 +147,11 @@ class RectangularSelection(object):
         if event.inaxes != self.ax:
             return
         self.pressevent = None
-        msg = 'Selected extents: xmin=%g, xmax=%g, ymin=%g, ymax=%g'
-        print msg % self.extents
+
+        if self.message is not None:
+            xmin, xmax, ymin, ymax = self.extents
+            print self.message.format(xmin=xmin, xmax=xmax,
+                                      ymin=ymin, ymax=ymax)
 
     def onmove(self, event):
         if self.pressevent is None or event.inaxes!=self.pressevent.inaxes:
