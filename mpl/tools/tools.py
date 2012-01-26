@@ -5,7 +5,39 @@ import matplotlib.pyplot as plt
 __all__ = ['MeasureLengthTool', 'RectangularSelection']
 
 
-class MeasureLengthTool(object):
+class BaseTool(object):
+    """Base class for tools.
+
+    This class simplifies the clean up of event callbacks by defining a
+    `disconnect` method to remove callbacks.
+
+    Note that callbacks should be initialized with the `connect` method instead
+    of `figure.canvas.mpl_connect`.
+
+    Attributes
+    ----------
+    ax : matplotlib.axes.Axes
+    fig : matplotlib.figure.Figure
+    canvas : matplotlib figure canvas
+    cids : list of callbacks
+    """
+
+    def __init__(self, ax, *args, **kwargs):
+        self.ax = ax
+        self.fig = ax.figure
+        self.canvas = ax.figure.canvas
+        self.cids = []
+
+    def connect(self, event, callback):
+        self.canvas.mpl_connect(event, callback)
+
+    def disconnect(self):
+        self.ax.patches.remove(self.rect)
+        for c in self.cids:
+            self.fig.canvas.mpl_disconnect(c)
+
+
+class MeasureLengthTool(BaseTool):
     """Tool for measuring lengths in a plot.
 
     Select a point in the axes and drag to measure a length; print the selected
@@ -32,16 +64,13 @@ class MeasureLengthTool(object):
 
     def __init__(self, ax, color='k', message='default'):
 
+        BaseTool.__init__(self, ax)
+
         self.message = self._message if message == 'default' else message
 
-        fig = ax.figure
-        connect = fig.canvas.mpl_connect
-        self.cids = []
-        self.cids.append(connect('button_press_event', self.onpress))
-        self.cids.append(connect('button_release_event', self.onrelease))
-        self.cids.append(connect('motion_notify_event', self.onmove))
-        self.fig = fig
-        self.ax = ax
+        self.connect('button_press_event', self.onpress)
+        self.connect('button_release_event', self.onrelease)
+        self.connect('motion_notify_event', self.onmove)
         self.line, = ax.plot((0, 0), (0, 0), color=color)
         self.pressevent = None
 
@@ -72,13 +101,8 @@ class MeasureLengthTool(object):
         self.line.set_data([self.x0, x1], [self.y0, y1])
         self.fig.canvas.draw()
 
-    def disconnect(self):
-        self.ax.lines.remove(self.line)
-        for c in self.cids:
-            self.fig.canvas.mpl_disconnect(c)
 
-
-class RectangularSelection(object):
+class RectangularSelection(BaseTool):
     """Tool for measuring rectangular regions in a plot.
 
     Select a point in the axes to set one corner of a rectangle and drag to
@@ -107,16 +131,13 @@ class RectangularSelection(object):
 
     def __init__(self, ax, color='k', message='default'):
 
+        BaseTool.__init__(self, ax)
+
         self.message = self._message if message == 'default' else message
 
-        fig = ax.figure
-        connect = fig.canvas.mpl_connect
-        self.cids = []
-        self.cids.append(connect('button_press_event', self.onpress))
-        self.cids.append(connect('button_release_event', self.onrelease))
-        self.cids.append(connect('motion_notify_event', self.onmove))
-        self.fig = fig
-        self.ax = ax
+        self.connect('button_press_event', self.onpress)
+        self.connect('button_release_event', self.onrelease)
+        self.connect('motion_notify_event', self.onmove)
 
         self.x0 = 0
         self.y0 = 0
@@ -161,9 +182,4 @@ class RectangularSelection(object):
         self.rect.set_width(self.x1 - self.x0)
         self.rect.set_height(self.y1 - self.y0)
         self.fig.canvas.draw()
-
-    def disconnect(self):
-        self.ax.patches.remove(self.rect)
-        for c in self.cids:
-            self.fig.canvas.mpl_disconnect(c)
 
