@@ -6,7 +6,7 @@ from yutils.mpl.tools import RectangularSelection
 
 plt.ion()
 f, ax = plt.subplots()
-plt.imshow(np.random.random((20, 20)))
+plt.imshow(np.random.random((20, 20)), interpolation='nearest')
 
 rect = RectangularSelection(ax)
 plt.draw()
