@@ -10,7 +10,6 @@ __all__ = ['figsize', 'thesis', 'thesis_full', 'publication', 'twocolumn',
 
 THESIS_WIDTH_INCHES = 6.5 # textwidth of page with 1-inch margins.
 APS_TWO_COLUMN_WIDTH_INCHES = 3.375 # 3 3/8 (from APS website)
-JFM_WIDTH_INCHES = 5.11 # 13 cm (from JFM website)
 KEYNOTE_WIDTH_72DPI = 13.5 # at 72 dpi, fits 1024x768 display w/ 54 px pad
 
 
@@ -106,7 +105,9 @@ def pof(figaspect=1.35, fullwidth=False):
 
 def jfm(figaspect=1.35, frac_page_width=0.7):
     """Change plot settings for Journal of Fluid Mechanics."""
-    width = JFM_WIDTH_INCHES * frac_page_width
+
+    fullwidth = 5.11 # 13 cm (from JFM website)
+    width = fullwidth * frac_page_width
     publication(width, figaspect=figaspect)
     plt.rc('lines', linewidth=1)
 
