@@ -2,20 +2,19 @@
 Histogram strip chart
 
 This plot is a hybrid between a box plot and a histogram, where each vertical
-strip represents a distribution (much like the box in a box plot) and the
-color represents the stands in for histogram-height for the distribution. This
-plot conveys roughly the same information as a violin plot [1] or bean plot [2].
+strip represents a distribution (much like the box in a box plot) and the color
+represents the stands in for histogram-height for the distribution. This plot
+conveys roughly the same information as a violin plot [1]_ or bean plot [2]_.
 
 
-[1] Hintze, J. L. and Nelson, R. D., "Violin plots, a box plot-density trace
-    synergism", The American Statistician (1998)
-[2] Kampstra, P., "Beanplot: A Boxplot Alternative for Visual Comparison of
-    Distributions", Journal of Statistical Software (2008)
+.. [1] Hintze, J. L. and Nelson, R. D., "Violin plots, a box plot-density trace
+       synergism", The American Statistician (1998)
+.. [2] Kampstra, P., "Beanplot: A Boxplot Alternative for Visual Comparison of
+       Distributions", Journal of Statistical Software (2008)
 """
 
 import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib import collections
 
 
 def _norm_max(x):
@@ -81,19 +80,20 @@ def histstrip(x, positions=None, widths=None, width_frac=0.5, median=True,
 
 if __name__ == '__main__':
     np.random.seed(2)
-    treatments = [np.random.normal(0,1, size=(500,))+dy for dy in (0, 0, 1, 2)]
+    data_stack = [np.random.normal(0,1, size=(500,))+dy for dy in (0, 0, 1, 2)]
 
     fig, ax = plt.subplots()
-    histstrip(treatments, ax=ax)
+    histstrip(data_stack, ax=ax)
     ax.set_xlabel('treatment')
     ax.set_ylabel('response')
     fig.subplots_adjust(right=0.99,top=0.99)
 
     fig, ax = plt.subplots()
     ax.set_xscale('log')
-    histstrip(treatments, positions=np.logspace(0, 3, 4), ax=ax)
+    histstrip(data_stack, positions=np.logspace(0, 3, 4), ax=ax)
     ax.set_xlabel('treatment')
     ax.set_ylabel('response')
     fig.subplots_adjust(right=0.99,top=0.99)
 
     plt.show()
+
