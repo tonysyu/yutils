@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 
 
 __all__ = ['figsize', 'thesis', 'thesis_full', 'publication', 'twocolumn',
-           'pof', 'jfm', 'presentation', 'thumbnail']
+           'pof', 'jfm', 'langmuir', 'presentation', 'thumbnail']
 
 
 THESIS_WIDTH_INCHES = 6.5 # textwidth of page with 1-inch margins.
