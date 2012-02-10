@@ -109,7 +109,7 @@ def cycle_cmap(length=50, cmap='YlOrBr', start=None, stop=None):
     plt.rc('axes', color_cycle=color_cycle.tolist())
 
 
-def cycle_cmap_axes(length=50, cmap='YlOrBr', start=None, stop=None):
+def cycle_cmap_axes(length=50, cmap='YlOrBr', start=None, stop=None, ax=None):
     """Return axes with color cycle set to a given colormap `cmap`.
 
     Colormaps listed in REVERSE_CMAP will be cycled in reverse order.
@@ -128,9 +128,9 @@ def cycle_cmap_axes(length=50, cmap='YlOrBr', start=None, stop=None):
         variables ensure that colors cycle from light to dark and light colors
         are not too close to white.
     """
+    ax = ax if ax is not None else plt.gca()
     color_cycle = cmap_intervals(length, cmap, start, stop)
     # set_default_color_cycle doesn't play nice with numpy arrays
-    ax = plt.gca()
     ax.set_color_cycle(color_cycle)
     return ax
 
