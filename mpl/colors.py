@@ -134,47 +134,59 @@ def cycle_cmap_axes(length=50, cmap='YlOrBr', start=None, stop=None, ax=None):
     return ax
 
 
-bwr_spec = {'blue': [(0.0, 0.3803921639919281,  0.3803921639919281),
-                     (0.5, 0.3803921639919281,  0.3803921639919281),
-                     (0.5, 0.12156862765550613, 0.12156862765550613),
-                     (1.0, 0.12156862765550613, 0.12156862765550613)],
+class LinearColormap(LinearSegmentedColormap):
+    """LinearSegmentedColormap in which color varies smoothly.
 
-           'green': [(0.0, 0.18823529779911041, 0.18823529779911041),
-                     (0.5, 0.18823529779911041, 0.18823529779911041),
-                     (0.5, 0.0, 0.0),
-                     (1.0, 0.0, 0.0)],
+    This class is a simplification of LinearSegmentedColormap, which doesn't
+    support jumps in color intensities.
 
-           'red': [(0.0, 0.019607843831181526, 0.019607843831181526),
-                   (0.5, 0.019607843831181526, 0.019607843831181526),
-                   (0.5, 0.40392157435417175, 0.40392157435417175),
-                   (1.0, 0.40392157435417175, 0.40392157435417175)],
+    Parameters
+    ----------
+    name : str
+        Name of colormap.
+
+    segmented_data : dict
+        Dictionary of 'red', 'green', 'blue', and (optionally) 'alpha' values.
+        Each color key contains a list of `x`, `y` tuples. `x` must increase
+        monotonically from 0 to 1 and corresponds to input values for a mappable
+        object (e.g. an image). `y` corresponds to the color intensity.
+
+    """
+    def __init__(self, name, segmented_data, **kwargs):
+        segmented_data = dict((key, [(x, y, y) for x, y in value])
+                              for key, value in segmented_data.iteritems())
+        LinearSegmentedColormap.__init__(self, name, segmented_data, **kwargs)
+
+
+bwr_spec = {'blue': [(0.0, 0.380, 0.380),
+                     (0.5, 0.380, 0.122),
+                     (1.0, 0.122, 0.122)],
+
+           'green': [(0.0, 0.188, 0.188),
+                     (0.5, 0.188, 0.0),
+                     (1.0, 0.0,   0.0)],
+
+           'red': [(0.0, 0.0196, 0.0196),
+                   (0.5, 0.0196, 0.4039),
+                   (1.0, 0.4039, 0.4039)],
            'alpha': [(  0, 1, 1),
-                     (0.5, 0, 0),
+                     (0.5, 0.3, 0.3),
                      (  1, 1, 1)]}
 blue_white_red = LinearSegmentedColormap('blue_white_red', bwr_spec)
 
-wr_speq = {'blue': [(0.0, 0.0, 0.0),
-                    (1.0, 0.0, 0.0)],
 
-           'green': [(0.0, 0.0, 0.0),
-                     (1.0, 0.0, 0.0)],
+wr_speq = {'blue':  [(0.0, 0.0),   (1.0, 0.0)],
+           'green': [(0.0, 0.0),   (1.0, 0.0)],
+           'red':   [(0.0, 0.404), (1.0, 0.404)],
+           'alpha': [(0.0, 0.0),   (1.0, 1.0)]}
+white_red = LinearColormap('white_red', wr_speq)
 
-           'red': [(0.0, 0.40392157435417175, 0.40392157435417175),
-                   (1.0, 0.40392157435417175, 0.40392157435417175)],
 
-           'alpha': [(0, 0, 0),
-                     (1, 1, 1)]}
-white_red = LinearSegmentedColormap('white_red', wr_speq)
-
-wo_speq = {'blue': [(0., 1.0, 1.0),
-                    (1., 0.386, 0.386)],
-           'green': [(0., 1.0, 1.0),
-                     (1., 0.714, 0.714)],
-           'red': [(0., 1.0, 1.0),
-                   (1., 0.979, 0.979)],
-           'alpha': [(0, 0, 0),
-                     (1, 1, 1)]}
-white_orange = LinearSegmentedColormap('white orange', wo_speq)
+wo_speq = {'blue':  [(0., 1.0), (1., 0.386)],
+           'green': [(0., 1.0), (1., 0.714)],
+           'red':   [(0., 1.0), (1., 0.979)],
+           'alpha': [(0., 0.0), (1., 1.000)]}
+white_orange = LinearColormap('white orange', wo_speq)
 
 
 if __name__ == '__main__':
