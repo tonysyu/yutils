@@ -1,5 +1,7 @@
-from warnings import warn
+import warnings
 import progressbar
+import functools
+
 import numpy as np
 
 import multiloop
@@ -18,6 +20,37 @@ def add_to_python_path(*args, **kwargs):
 def get_hg_revision(*args, **kwargs):
     msg = 'yutils.get_hg_revision moved to yutils.hg.get_revision'
     raise DeprecationWarning(msg)
+
+
+class deprecated(object):
+    """Decorator to mark deprecated functions with warning.
+
+    Adapted from <http://wiki.python.org/moin/PythonDecoratorLibrary>.
+
+    Parameters
+    ----------
+    alt_func : str
+        If given, tell user what function to use instead.
+    """
+
+    def __init__(self, alt_func=None):
+        self.alt_func = alt_func
+
+    def __call__(self, func):
+
+        msg = "Call to deprecated function `%s`." % func.__name__
+        if self.alt_func is not None:
+            msg = msg + " Use `%s` instead." % self.alt_func
+
+        @functools.wraps(func)
+        def wrapped(*args, **kwargs):
+            warnings.warn_explicit(msg,
+                category=DeprecationWarning,
+                filename=func.func_code.co_filename,
+                lineno=func.func_code.co_firstlineno + 1
+            )
+            return func(*args, **kwargs)
+        return wrapped
 
 
 class ProgressBar(progressbar.ProgressBar):
@@ -263,7 +296,7 @@ def arg_nearest(arr, value, atol=None, rtol=None):
     >>> arg_nearest(a, 3.1, rtol=0.1)
     2
     """
-    warn("Use numpy.searchsorted", DeprecationWarning)
+    warnings.warn("Use numpy.searchsorted", DeprecationWarning)
     abs_diff = np.abs(np.asarray(arr) - value)
     idx = abs_diff.argmin()
     if atol is not None:
