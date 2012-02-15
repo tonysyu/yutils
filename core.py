@@ -24,10 +24,9 @@ class ProgressBar(progressbar.ProgressBar):
     """ProgressBar class with default widgets and improved update method.
 
     This implementation simplifies usage when the total number of iterations
-    is known:
+    is known and you want to start immediately:
 
     >>> pbar = ProgressBar(50)
-    >>> pbar.start()
     >>> for i in iterable:
     ...     pbar.update()
     >>> pbar.finish()
@@ -41,12 +40,14 @@ class ProgressBar(progressbar.ProgressBar):
     >>> pbar.finish()
     """
 
-    def __init__(self, length, name='progress', **kwargs):
+    def __init__(self, length, name='progress', start=True, **kwargs):
         assert 'maxval' not in kwargs
         if 'widgets' not in kwargs:
             widgets = [name, progressbar.Percentage(), ' ',
                        progressbar.Bar(), ' ', progressbar.ETA()]
         progressbar.ProgressBar.__init__(self, widgets=widgets, maxval=length)
+        if start:
+            self.start()
 
     def update(self, value=None):
         """Updates ProgressBar to new value.
