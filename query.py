@@ -23,7 +23,7 @@ class Query(object):
     """
     default_notification_msg = "Invalid input: {user_input}"
 
-    def __init__(self, msg, behavior='loop', quit='q', notification_msg=None):
+    def __init__(self, msg, behavior='loop', quit=None, notification_msg=None):
 
         self.msg = msg
         self.behavior = behavior
@@ -38,7 +38,7 @@ class Query(object):
         """Query user for input and validate it."""
         while 1:
             user_input = raw_input(self.msg)
-            if user_input == self.quit:
+            if self.quit is not None and user_input == self.quit:
                 return
 
             try:
