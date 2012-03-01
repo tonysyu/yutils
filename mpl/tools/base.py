@@ -26,10 +26,10 @@ class BaseTool(object):
         self.cids = []
 
     def connect(self, event, callback):
-        self.canvas.mpl_connect(event, callback)
+        cid = self.canvas.mpl_connect(event, callback)
+        self.cids.append(cid)
 
     def disconnect(self):
-        self.ax.patches.remove(self.rect)
         for c in self.cids:
-            self.fig.canvas.mpl_disconnect(c)
+            self.canvas.mpl_disconnect(c)
 
