@@ -6,7 +6,6 @@ import matplotlib.pyplot as plt
 import matplotlib.collections as mcoll
 
 import yutils
-import plotstyle
 
 
 __all__ = ['plot']
