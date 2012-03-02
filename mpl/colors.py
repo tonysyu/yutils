@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap
 
 import yutils
-import mpltools
+import mpltools.color
 
 
 __all__ = ['blue_white_red', 'white_red','white_orange', 'make_color_mapper', 
@@ -11,27 +11,24 @@ __all__ = ['blue_white_red', 'white_red','white_orange', 'make_color_mapper',
 
 
 @yutils.deprecated('mpltools.color.color_mapper')
-def make_color_mapper(parameter_range, cmap='YlOrBr', start=0, stop=255):
-    kwargs = dict(cmap=cmap, start=start / 255., stop=stop / 255.)
-    return mpltools.color.color_mapper(parameter_range, **kwargs)
+def make_color_mapper(*args, **kwargs):
+    return mpltools.color.color_mapper(*args, **kwargs)
 
 
 @yutils.deprecated('mpltools.color.colors_from_cmap')
-def cmap_intervals(length=50, cmap='YlOrBr', start=None, stop=None):
-    kwargs = dict(length=length, cmap=cmap, start=start, stop=stop)
-    return mpltools.color.colors_from_cmap(**kwargs)
+def cmap_intervals(*args, **kwargs):
+    return mpltools.color.colors_from_cmap(*args, **kwargs)
 
 
 @yutils.deprecated('mpltools.color.cycle_cmap')
-def cycle_cmap(length=50, cmap='YlOrBr', start=None, stop=None):
-    kwargs = dict(length=length, cmap=cmap, start=start, stop=stop)
-    mpltools.color.cycle_cmap(**kwargs)
+def cycle_cmap(*args, **kwargs):
+    mpltools.color.cycle_cmap(*args, **kwargs)
 
 
 @yutils.deprecated('mpltools.color.cycle_cmap')
-def cycle_cmap_axes(length=50, cmap='YlOrBr', start=None, stop=None, ax=None):
-    ax = ax if ax is not None else plt.gca()
-    mpltools.color.cycle_cmap(ax=ax, **kwargs)
+def cycle_cmap_axes(*args, **kwargs):
+    ax = kwargs.pop('ax', plt.gca())
+    mpltools.color.cycle_cmap(ax=ax, *args, **kwargs)
     return ax
 
 class LinearColormap(LinearSegmentedColormap):
