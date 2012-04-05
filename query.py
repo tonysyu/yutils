@@ -238,6 +238,7 @@ class ChoiceQuery(Query):
         self.notification_kws = dict(choices=choices)
 
     def validate(self, user_input):
+        user_input = user_input.strip()
         if not user_input in self.choices:
             raise ValueError()
         return user_input
