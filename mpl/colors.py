@@ -6,8 +6,8 @@ import yutils
 import mpltools.color
 
 
-__all__ = ['blue_white_red', 'white_red','white_orange', 'make_color_mapper', 
-           'cmap_intervals', 'cycle_cmap', 'cycle_cmap_axes']
+__all__ = ['blue_white_red', 'white_red','white_orange', 'make_color_mapper',
+           'cmap_intervals', 'cycle_cmap', 'cycle_cmap_axes', 'color_list']
 
 
 @yutils.deprecated('mpltools.color.color_mapper')
@@ -30,6 +30,22 @@ def cycle_cmap_axes(*args, **kwargs):
     ax = kwargs.pop('ax', plt.gca())
     mpltools.color.cycle_cmap(ax=ax, *args, **kwargs)
     return ax
+
+
+def color_list(style='bold'):
+    """Return list of sequential colors.
+
+    Parameters
+    ----------
+    style : {'bold' | 'muted'}
+        Style of color list.
+    """
+    if style == 'bold':
+        return ['red', 'limegreen', 'blueviolet', 'orange', 'black',
+                'orchid', 'blue', 'goldenrod', 'yellowgreen']
+    elif style == 'muted':
+        return plt.cm.Set3(np.linspace(0, 1, 12))
+
 
 class LinearColormap(LinearSegmentedColormap):
     """LinearSegmentedColormap in which color varies smoothly.
