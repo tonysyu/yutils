@@ -1,3 +1,10 @@
+"""
+Matplotlib's patch collections are sized by pts instead of data sizes. The
+collections implemented have sizes based on data. In addition, these sizes are
+specified by some linear dimension (e.g. radius or width)---in contrast to
+Matplotlib collections, which use areas to size patches.
+
+"""
 import numpy as np
 from matplotlib import collections
 from matplotlib import transforms
