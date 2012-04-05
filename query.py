@@ -1,3 +1,4 @@
+import sys
 import operator
 
 import numpy as np
@@ -242,4 +243,51 @@ class ChoiceQuery(Query):
         if not user_input in self.choices:
             raise ValueError()
         return user_input
+
+
+class Confirm(ChoiceQuery):
+    """Query user for 'y' or 'n' input.
+
+    Parameters
+    ----------
+    msg : str
+        Message to user requesting input.
+
+    return_bool : bool
+        If True, return True when choice is 'y' and False when choice is 'n'.
+
+    """
+    map_bool = dict(y=True, n=False)
+
+    def __init__(self, msg="Confirm (y/n): ", return_bool=True,
+                 behavior='loop'):
+        self.return_bool = return_bool
+        ChoiceQuery.__init__(self, msg, ['y', 'n'], behavior=behavior)
+
+    def __call__(self):
+        response = ChoiceQuery.__call__(self)
+        if self.return_bool and response in self.map_bool:
+            response = self.map_bool[response]
+        return response
+
+
+class Quit(Confirm):
+    """Query user for and verify input is one of the allowed choices.
+
+    Parameters
+    ----------
+    msg : str
+        Message to user requesting input.
+
+    """
+    map_bool = dict(y=True, n=False)
+
+    def __init__(self, msg="Quit (y/n): ", **kwargs):
+        Confirm.__init__(self, msg, return_bool=True, **kwargs)
+
+    def __call__(self):
+        response = Confirm.__call__(self)
+        if response:
+            sys.exit()
+        return response
 
