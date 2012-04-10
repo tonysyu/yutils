@@ -282,12 +282,18 @@ class Quit(Confirm):
     """
     map_bool = dict(y=True, n=False)
 
-    def __init__(self, msg="Quit (y/n): ", **kwargs):
+    def __init__(self, msg="Quit (y/n): ", quit_message=None, **kwargs):
         Confirm.__init__(self, msg, return_bool=True, **kwargs)
+        self.quit_message = quit_message
 
     def __call__(self):
         response = Confirm.__call__(self)
         if response:
-            sys.exit()
+            self.do_quit()
         return response
+
+    def do_quit(self):
+        if self.quit_message is not None:
+            print self.quit_message
+        sys.exit()
 
