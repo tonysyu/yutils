@@ -1,7 +1,14 @@
+"""
+Query classes for requesting user input from the command line.
+
+"""
 import sys
 import operator
 
 import numpy as np
+
+
+__all__ = ['Query', 'FloatQuery', 'IntQuery', 'ChoiceQuery', 'Confirm', 'Quit']
 
 
 class Query(object):
@@ -246,7 +253,7 @@ class ChoiceQuery(Query):
 
 
 class Confirm(ChoiceQuery):
-    """Query user for 'y' or 'n' input.
+    """Query user for yes ('y') or no ('n') input.
 
     Parameters
     ----------
@@ -272,12 +279,14 @@ class Confirm(ChoiceQuery):
 
 
 class Quit(Confirm):
-    """Query user for and verify input is one of the allowed choices.
+    """Confirm quit (call to `sys.exit()`).
 
     Parameters
     ----------
     msg : str
         Message to user requesting input.
+    quit_message : str
+        Message printed before calling `sys.exit()`.
 
     """
     map_bool = dict(y=True, n=False)
