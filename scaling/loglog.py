@@ -34,6 +34,8 @@ def fit_range(x_data, y_data, x_range=None, return_dict=False):
         if return_dict:
             return slope, dict(R2=0, idx=[[]]) # where returns nested array
         return slope
+    # I'm not sure why I interpolate the endpoints and use them in the fit.
+    # This limits the fit to sorted data and may skew results
     y_range = np.interp(x_range, x_data, y_data)
     x = np.log10(np.r_[x_range[0], x_data[idx], x_range[1]])
     y = np.log10(np.r_[y_range[0], y_data[idx], y_range[1]])
