@@ -66,18 +66,18 @@ class ProgressBar(progressbar.ProgressBar):
     This implementation simplifies usage when the total number of iterations
     is known and you want to start immediately:
 
-    >>> pbar = ProgressBar(50)
-    >>> for i in iterable:
-    ...     pbar.update()
-    >>> pbar.finish()
+    >> pbar = ProgressBar(50)
+    >> for i in iterable:
+    ..     pbar.update()
+    >> pbar.finish()
 
     instead of
 
-    >>> pbar = ProgressBar(50)
-    >>> pbar.start()
-    >>> for n, i in enumerate(iterable):
-    ...     pbar.update(n)
-    >>> pbar.finish()
+    >> pbar = ProgressBar(50)
+    >> pbar.start()
+    >> for n, i in enumerate(iterable):
+    ..     pbar.update(n)
+    >> pbar.finish()
     """
 
     def __init__(self, length, name='progress', start=True, **kwargs):
