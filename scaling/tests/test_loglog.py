@@ -8,6 +8,8 @@ def test_fit_range():
     x = np.logspace(0, 2)
     y = x**3
     assert_close(loglog.fit_range(x, y, (x[0], x[-1])), 3.)
+    fit = loglog.fit_powerlaw(x, y, (x[0], x[-1]))
+    assert_close(fit.exponent, 3.)
 
 def test_line_functions(r=1.5, offset=3., y0=3):
     x = np.array([1, 2, 3]) + offset

@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 import numpy as np
+from scipy import optimize
+
+import yutils
 
 
 __all__ = ['fit_range', 'displace', 'line_x', 'line_y']
@@ -45,6 +48,56 @@ def fit_range(x_data, y_data, x_range=None, return_dict=False):
         R2 = (np.corrcoef(x, y)[0, 1])**2
         return slope, dict(R2=R2, idx=idx, poly=poly)
     return slope
+
+
+# Error functions for a straight-line fit through logarithm of data
+_powerlaw_errfunc = lambda p, x, y: (p[0] + p[1] * x) - y
+
+def fit_powerlaw(x_data, y_data, x_range=None, init_guess=(1.0, 1.0)):
+    """Return a Bunch object with amplitude and exponent of power-law fit.
+
+    Parameters
+    ----------
+    x_data, y_data: array
+        points describing curve
+    x_range : sequence
+        minimum and maximum values of x-data range to fit
+    init_guess : tuple
+        Initial guess for amplitude and exponent of power law
+
+    Returns
+    -------
+    fit : object
+        Bunch object with attributes: `amplitude`, `amplitude_std`,
+        `exponent`, and `exponent_std`.
+    """
+    x_data = np.asarray(x_data)
+    y_data = np.asarray(y_data)
+    assert len(x_data) == len(y_data)
+    x_range = x_range if x_range is not None else (None, None)
+    x_range = list(x_range)
+    x_range[0] = x_range[0] if x_range[0] is not None else x_data.min()
+    x_range[1] = x_range[1] if x_range[1] is not None else x_data.max()
+
+    idx = np.where((x_data >= x_range[0]) & (x_data <= x_range[1]))
+    if len(idx[0]) == 0:
+        raise ValueError("No data within specified `x_range`!")
+
+    logx = np.log10(x_data[idx])
+    logy = np.log10(y_data[idx])
+
+    out = optimize.leastsq(_powerlaw_errfunc, init_guess, args=(logx, logy),
+                           full_output=True)
+
+    pfinal = out[0]
+    covar = out[1]
+    amplitude = 10.0**pfinal[0]
+
+    fit = yutils.Bunch(exponent=pfinal[1],
+                       amplitude=amplitude,
+                       std_exponent=np.sqrt(covar[0][0]),
+                       std_amplitude=np.sqrt(covar[1][1]) * amplitude)
+    return fit
 
 
 def displace(x0, dx_log=None, x1=None, frac=None):
