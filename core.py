@@ -2,6 +2,8 @@ import re
 import warnings
 import progressbar
 import functools
+from functools import wraps
+from UserDict import DictMixin
 
 import numpy as np
 
@@ -99,6 +101,66 @@ class deprecated(object):
             return func(*args, **kwargs)
 
         return wrapped
+
+
+class inherit_doc(object):
+    """Docstring inheriting method descriptor
+
+    The class itself is used as a decorator. Code from [1].
+
+    Usage:
+    >>> class Foo(object):
+    ...     def foo(self):
+    ...         "Frobber"
+    ...         pass
+    ...
+    >>> class Bar(Foo):
+    ...     @inherit_doc
+    ...     def foo(self):
+    ...         pass
+    >>> Bar.foo.__doc__
+    'Frobber'
+
+    [1] http://code.activestate.com/recipes/576862/
+    """
+
+    def __init__(self, mthd):
+        self.mthd = mthd
+        self.name = mthd.__name__
+
+    def __get__(self, obj, cls):
+        if obj:
+            return self.get_with_inst(obj, cls)
+        else:
+            return self.get_no_inst(cls)
+
+    def get_with_inst(self, obj, cls):
+
+        overridden = getattr(super(cls, obj), self.name, None)
+
+        @wraps(self.mthd, assigned=('__name__','__module__'))
+        def f(*args, **kwargs):
+            return self.mthd(obj, *args, **kwargs)
+
+        return self.use_parent_doc(f, overridden)
+
+    def get_no_inst(self, cls):
+
+        for parent in cls.__mro__[1:]:
+            overridden = getattr(parent, self.name, None)
+            if overridden: break
+
+        @wraps(self.mthd, assigned=('__name__','__module__'))
+        def f(*args, **kwargs):
+            return self.mthd(*args, **kwargs)
+
+        return self.use_parent_doc(f, overridden)
+
+    def use_parent_doc(self, func, source):
+        if source is None:
+            raise NameError, ("Can't find '%s' in parents" % self.name)
+        func.__doc__ = source.__doc__
+        return func
 
 
 class ProgressBar(progressbar.ProgressBar):
@@ -425,6 +487,176 @@ class ArrayWindow(list):
         elif isinstance(val, tuple):
             valx = tuple(-v for v in val)
             return self + valx
+
+
+def attributes_from_dict(d):
+    """Automatically intialize instance variables from dict `d`.
+
+    This function is taken directly from the Python Cookbook, recipe 6.18.
+    This function should be called from an objects `__init__` method and
+    `locals()` should be passed as the argument `d` to initialize arguments
+    from the object call to the instance attributes.
+
+    >>> class Dummy(object):
+    ...     def __init__(self, x, y, a=None, b='world'):
+    ...         attributes_from_dict(locals())
+
+    >>> dumb = Dummy(1, 2, 'hello')
+    >>> dumb.x
+    1
+    >>> dumb.y
+    2
+    >>> dumb.a
+    'hello'
+    >>> dumb.b
+    'world'
+    """
+    self = d.pop('self')
+    for n, v in d.iteritems():
+        setattr(self, n, v)
+
+class PickDict(dict):
+    """Dict that allows you pick multiple values at once.
+
+    PickDict provides the `pick` method for returning multiple values. For
+    example:
+    >>> d = PickDict(a = 1, b= 2, c=3, d=4)
+    >>> d.pick('a', 'c')
+    [1, 3]
+
+    See also: PickAttrs
+    """
+
+    def pick(self, *args):
+        """Return list of values of all keys passed."""
+        return [self[k] for k in args]
+
+
+class PickAttrs(object):
+    """Class that allows you pick multiple values at once.
+
+    PickAttrs provides the `pick` method for returning multiple values. For
+    example:
+    >>> class Dummy(PickAttrs):
+    ...     a = 1
+    ...     b = 2
+    ...     c = 3
+    >>> d = Dummy()
+    >>> d.pick('a', 'c')
+    [1, 3]
+
+    See also: PickDict
+    """
+
+    def pick(self, *args):
+        """Return list of values of all given attribute names."""
+        return [getattr(self, k) for k in args]
+
+class PickBunch(PickAttrs, Bunch):
+    """Class allowing attr initialization ala Bunch and picking ala PickAttrs"""
+
+
+class OrderedDict(dict, DictMixin):
+    """Ordered dict where keys remain in order they were added.
+
+    [1] http://code.activestate.com/recipes/576693/
+    """
+
+    def __init__(self, *args, **kwds):
+        if len(args) > 1:
+            raise TypeError('expected at most 1 arguments, got %d' % len(args))
+        try:
+            self.__end
+        except AttributeError:
+            self.clear()
+        self.update(*args, **kwds)
+
+    def clear(self):
+        self.__end = end = []
+        end += [None, end, end]         # sentinel node for doubly linked list
+        self.__map = {}                 # key --> [key, prev, next]
+        dict.clear(self)
+
+    def __setitem__(self, key, value):
+        if key not in self:
+            end = self.__end
+            curr = end[1]
+            curr[2] = end[1] = self.__map[key] = [key, curr, end]
+        dict.__setitem__(self, key, value)
+
+    def __delitem__(self, key):
+        dict.__delitem__(self, key)
+        key, prev, next = self.__map.pop(key)
+        prev[2] = next
+        next[1] = prev
+
+    def __iter__(self):
+        end = self.__end
+        curr = end[2]
+        while curr is not end:
+            yield curr[0]
+            curr = curr[2]
+
+    def __reversed__(self):
+        end = self.__end
+        curr = end[1]
+        while curr is not end:
+            yield curr[0]
+            curr = curr[1]
+
+    def popitem(self, last=True):
+        if not self:
+            raise KeyError('dictionary is empty')
+        key = reversed(self).next() if last else iter(self).next()
+        value = self.pop(key)
+        return key, value
+
+    def __reduce__(self):
+        items = [[k, self[k]] for k in self]
+        tmp = self.__map, self.__end
+        del self.__map, self.__end
+        inst_dict = vars(self).copy()
+        self.__map, self.__end = tmp
+        if inst_dict:
+            return (self.__class__, (items,), inst_dict)
+        return self.__class__, (items,)
+
+    def keys(self):
+        return list(self)
+
+    setdefault = DictMixin.setdefault
+    update = DictMixin.update
+    pop = DictMixin.pop
+    values = DictMixin.values
+    items = DictMixin.items
+    iterkeys = DictMixin.iterkeys
+    itervalues = DictMixin.itervalues
+    iteritems = DictMixin.iteritems
+
+    def __repr__(self):
+        if not self:
+            return '%s()' % (self.__class__.__name__,)
+        return '%s(%r)' % (self.__class__.__name__, self.items())
+
+    def copy(self):
+        return self.__class__(self)
+
+    @classmethod
+    def fromkeys(cls, iterable, value=None):
+        d = cls()
+        for key in iterable:
+            d[key] = value
+        return d
+
+    def __eq__(self, other):
+        if isinstance(other, OrderedDict):
+            return len(self)==len(other) and \
+                   all(p==q for p, q in  zip(self.items(), other.items()))
+        return dict.__eq__(self, other)
+
+    def __ne__(self, other):
+        return not self == other
+
 
 
 if __name__ == '__main__':

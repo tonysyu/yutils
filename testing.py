@@ -2,9 +2,29 @@
 Testing and profile related helper functions.
 """
 import os
+import time
 import pstats
 import cProfile
 import tempfile
+import contextlib
+
+
+@contextlib.contextmanager
+def stopwatch(times=None):
+    """Add time used inside a with block to list of `times`.
+
+    Modified from ActiveState Code: Recipe 498113
+    """
+    start = time.clock()
+    try:
+        yield
+    finally:
+        end = time.clock()
+    elapsed = end - start
+    if times is None:
+        print 'elapsed time: %f sec' % elapsed
+    else:
+        times.append(elapsed)
 
 
 def profile(cmd, numstats=20, sort='cumulative'):
