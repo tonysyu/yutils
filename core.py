@@ -1,3 +1,4 @@
+import re
 import warnings
 import progressbar
 import functools
@@ -20,6 +21,26 @@ def add_to_python_path(*args, **kwargs):
 def get_hg_revision(*args, **kwargs):
     msg = 'yutils.get_hg_revision moved to yutils.hg.get_revision'
     raise DeprecationWarning(msg)
+
+
+NUMBER = re.compile('([0-9]+)')
+
+
+def alphanum_key(s):
+    """Turn a string into a list of string and number chunks.
+    >>> alphanum_key("z23a")
+    ['z', 23, 'a']
+    """
+    return [int(c) if c.isdigit() else c for c in NUMBER.split(s)]
+
+
+def sort_nicely(alist):
+    """Return the given list sorted in the way that humans expect.
+
+    >>> sort_nicely(['image100', 'image11', 'image01', 'image2'])
+    ['image01', 'image2', 'image11', 'image100']
+    """
+    return sorted(alist, key=alphanum_key)
 
 
 class Bunch(object):
