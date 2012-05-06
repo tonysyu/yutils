@@ -89,6 +89,17 @@ class temporary_file(object):
         self.temp.close()
 
 
+def qt4_pdb(ipython=True):
+  '''Set a tracepoint in the Python debugger that works with Qt'''
+  from PyQt4.QtCore import pyqtRemoveInputHook
+  pyqtRemoveInputHook()
+  if ipython:
+      from IPython.core.debugger import Tracer
+      return Tracer(colors='Linux')
+  else:
+      from pdb import set_trace
+      return set_trace
+
 if __name__ == '__main__':
     import doctest
     doctest.testmod()
