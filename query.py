@@ -1,6 +1,21 @@
 """
 Query classes for requesting user input from the command line.
 
+Inputs are validated based on expected input for the class. Invalid inputs can
+either repeat input request or raise an error.
+
+For example, if you wanted to get a float value between 0 and 10, you could
+write:
+
+    In [1]: q = query.FloatQuery('Enter a number: ', limits=(0, 10))
+
+    In [2]: n = q()
+    Enter a number: 100
+    Invalid input: 100, expected float between 0 and 10.
+    Enter a number: 1
+
+And the return value (`n` above) will be the validated user input.
+
 """
 import sys
 import operator
@@ -18,16 +33,12 @@ class Query(object):
     ----------
     msg : str
         Message to user requesting input.
-
     behavior : {'loop' | 'error'}
         Behavior when user inputs unknown input.
-
     quit : str
         Input value used to quit query; `None` is returned when quitting.
-
     notification_msg : str
         Format string that's printed when the input is invalid.
-
     """
     default_notification_msg = "Invalid input: {user_input}"
 
@@ -75,28 +86,22 @@ class FloatQuery(Query):
     ----------
     msg : str
         Message to user requesting input.
-
     limits : 2-tuple
         Valid input must be between specified limits. If None, any input is
         accepted. If first (second) limit is None, then the input must be less
         (greater) than second (first) limit. If neither limit is None, then the
         input must be within the specified limits.
-
     comparison : {'open' | 'closed'} or (str, str)
         If 'open', input must be less-(or greater-)than or equal-to the limits.
         If 'closed', input must be strictly less-(or greater-)than the limits.
         Different comparisons can be used for the lower and upper bound using
         a  of 'open' and 'closed'.
-
     behavior : {'loop' | 'error'}
         Behavior when user inputs unknown input.
-
     quit : str
         Input value used to quit query; `None` is returned when quitting.
-
     notification_msg : str
         Format string that's printed when the input is invalid.
-
     """
 
     notification_nolimits = "Invalid input: {user_input}, expected float."
@@ -160,31 +165,24 @@ class IntQuery(FloatQuery):
     ----------
     msg : str
         Message to user requesting input.
-
     limits : 2-tuple
         Valid input must be between specified limits. If None, any input is
         accepted. If first (second) limit is None, then the input must be less
         (greater) than second (first) limit. If neither limit is None, then the
         input must be within the specified limits.
-
     comparison : {'open' | 'closed'} or (str, str)
         If 'open', input must be less-(or greater-)than or equal-to the limits.
         If 'closed', input must be strictly less-(or greater-)than the limits.
         Different comparisons can be used for the lower and upper bound using
         a  of 'open' and 'closed'.
-
     strict : bool
         If True, input must not be a float value (i.e. have a decimal point)
-
     behavior : {'loop' | 'error'}
         Behavior when user inputs unknown input.
-
     quit : str
         Input value used to quit query; `None` is returned when quitting.
-
     notification_msg : str
         Format string that's printed when the input is invalid.
-
     """
 
     notification_nolimits = "Invalid input: {user_input}, expected int."
@@ -218,19 +216,14 @@ class ChoiceQuery(Query):
     ----------
     msg : str
         Message to user requesting input.
-
     choices : list of strs
         Valid user inputs.
-
     behavior : {'loop' | 'error'}
         Behavior when user inputs unknown input.
-
     quit : str
         Input value used to quit query; `None` is returned when quitting.
-
     notification_msg : str
         Format string that's printed when the input is invalid.
-
     """
 
     default_notification_msg = ("Invalid input: {user_input}, expected one "
@@ -259,10 +252,8 @@ class Confirm(ChoiceQuery):
     ----------
     msg : str
         Message to user requesting input.
-
     return_bool : bool
         If True, return True when choice is 'y' and False when choice is 'n'.
-
     """
     map_bool = dict(y=True, n=False)
 
@@ -287,7 +278,6 @@ class Quit(Confirm):
         Message to user requesting input.
     quit_message : str
         Message printed before calling `sys.exit()`.
-
     """
     map_bool = dict(y=True, n=False)
 
