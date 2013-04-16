@@ -13,8 +13,8 @@ __all__ = ['plot']
 
 def plot(xs, ys, spillover=False,
          x_offset=None, y_offset=None,
-         x_pct_offset=0.5, y_pct_offset=5.,
-         color=None, z_label='', z_final=None, ax=None):
+         x_pct_offset=0.5, y_pct_offset=5., alpha=1,
+         color=None, z_label='', z_final=None, z_final_color=None, ax=None):
     """Plot sequential curves with later curves shifted diagonally.
 
     Parameters
@@ -42,6 +42,8 @@ def plot(xs, ys, spillover=False,
         ax = plt.gca()
     if color is None:
         color = (0.6, 0.55, 0.45)
+    if z_final_color is None:
+        z_final_color = 'k'
     offsets = _calculate_offsets(xs, ys, x_offset, y_offset,
                                             x_pct_offset, y_pct_offset)
     xs, ys = _validate_curves(xs, ys)
@@ -53,12 +55,13 @@ def plot(xs, ys, spillover=False,
             x = np.hstack((x, x[-1]))
             y = np.hstack((y, 0))
         lines.append(zip(x, y))
-    col = mcoll.LineCollection(lines, offsets=offsets, colors=color)
+    col = mcoll.LineCollection(lines, offsets=offsets, colors=color,
+                               alpha=alpha)
     ax.add_collection(col)
     ax.autoscale_view()
     x_offset_total, y_offset_total = np.array(offsets) * (n+1)
     _plot_z_axis(x_offset_total, y_offset_total, y_left_max, z_label, z_final,
-                 color, ax)
+                 z_final_color, ax)
 
 
 def _validate_curves(xs, ys):
@@ -91,7 +94,7 @@ def _plot_z_axis(x_offset_total, y_offset_total, y_left_max, z_label, z_final,
     if z_final is not None:
         xt = x_offset_total
         yt = y_left_max + y_offset_total
-        ax.text(xt, yt, '%s = %s' % (z_label, z_final), color=color)
+        ax.text(xt, yt, '%s = %s' % (z_label, z_final), color=color, ha='center')
 
 
 if __name__ == '__main__':
