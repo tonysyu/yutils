@@ -88,10 +88,10 @@ bwr_spec = {'blue': [(0.0, 0.380, 0.380),
 blue_white_red = LinearSegmentedColormap('blue_white_red', bwr_spec)
 
 
-wr_speq = {'blue':  [(0.0, 0.0),   (1.0, 0.0)],
-           'green': [(0.0, 0.0),   (1.0, 0.0)],
-           'red':   [(0.0, 0.404), (1.0, 0.404)],
-           'alpha': [(0.0, 0.0),   (1.0, 1.0)]}
+wr_speq = {'blue':  [(0.0, 0.4), (1.0, 0.0)],
+           'green': [(0.0, 0.4), (1.0, 0.0)],
+           'red':   [(0.0, 0.4), (1.0, 0.4)],
+           'alpha': [(0.0, 0.0), (1.0, 1.0)]}
 white_red = LinearColormap('white_red', wr_speq)
 
 
