@@ -420,6 +420,61 @@ def arg_nearest(arr, value, atol=None, rtol=None):
     return idx
 
 
+class CenteredWindow(object):
+    """Slicing object for numpy ndarrays.
+
+    CenteredWindow indexes numpy arrays over multiple dimensions with a window
+    centered at a specified position.
+
+    Parameters
+    ----------
+    *index_ranges : tuples
+        (start, stop[, step) tuples for each dimension
+
+    Example
+    -------
+    >>> a = np.arange(9)
+    >>> window = CenteredWindow(1, a.size)
+    >>> a[window.at(4)]
+    array([3, 4, 5])
+    >>> a[window.at(5)]
+    array([4, 5, 6])
+    >>> a[window.at(3)]
+    array([2, 3, 4])
+
+    >>> a = np.array([[0, 0, 0, 0],
+    ...               [0, 1, 1, 0],
+    ...               [0, 1, 1, 0],
+    ...               [0, 0, 0, 0]])
+    >>> window = CenteredWindow((1, 1), a.shape)
+    >>> a[window.at(2, 2)]
+    array([[1, 1, 0],
+           [1, 1, 0],
+           [0, 0, 0]])
+    >>> a[window.at(3, 3)]
+    array([[1, 0],
+           [0, 0]])
+    >>> a[window.at(3, 2)]
+    array([[1, 1, 0],
+           [0, 0, 0]])
+    >>> a[window.at(2, 0)]
+    array([[0, 1],
+           [0, 1],
+           [0, 0]])
+    """
+    def __init__(self, window_shape, array_shape):
+        if not np.iterable(window_shape):
+            window_shape = (window_shape,)
+        if not np.iterable(array_shape):
+            array_shape = (array_shape,)
+        self.window_shape = window_shape
+        self.array_shape = array_shape
+
+    def at(self, *index):
+        return [slice(max(0, i - w), min(L, i + w + 1))
+                for i, w, L in zip(index, self.window_shape, self.array_shape)]
+
+
 class ArrayWindow(list):
     """Slicing object for numpy ndarrays.
 
