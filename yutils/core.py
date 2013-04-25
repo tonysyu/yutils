@@ -3,26 +3,15 @@ import warnings
 import progressbar
 import functools
 from functools import wraps
-from UserDict import DictMixin
 
 import numpy as np
 
-import multiloop
 
-
-def profile(*args, **kwargs):
-    raise DeprecationWarning('Moved to yutils.testing')
-
-
-def join_to_filepath(*args, **kwargs):
-    raise DeprecationWarning('Moved to yutils.path')
-
-def add_to_python_path(*args, **kwargs):
-    raise DeprecationWarning('Moved to yutils.path')
-
-def get_hg_revision(*args, **kwargs):
-    msg = 'yutils.get_hg_revision moved to yutils.hg.get_revision'
-    raise DeprecationWarning(msg)
+__all__ = ['alphanum_key', 'sort_nicely', 'Bunch', 'deprecated', 'inherit_doc',
+           'ProgressBar', 'pad_zeros', 'numbered_file_format', 'iflatten',
+           'interlace', 'attr_values', 'slice_from_string', 'CenteredWindow',
+           'ArrayWindow', 'attributes_from_dict', 'PickDict', 'PickAttrs',
+           'PickBunch']
 
 
 NUMBER = re.compile('([0-9]+)')
@@ -230,17 +219,6 @@ def numbered_file_format(maxint):
     return '%%s_%s.%%s' % pad_zeros(maxint)
 
 
-def where1d(array):
-    """Return indices where input array is True.
-
-    Instead of returning a tuple of indices for each dimension (which is what
-    `numpy.where` does), return a single array of indices.
-    """
-    where = np.where(array)
-    assert len(where) == 1
-    return where[0]
-
-
 def iflatten(seq):
     """Iterate over sequence flattened by one level of nesting.
 
@@ -280,25 +258,6 @@ def interlace(*args):
     return np.column_stack(args).ravel()
 
 
-def iterstep(iterator, n):
-    """Yield every `n`th value of given `iterator`.
-
-    Example
-    -------
-    >>> count = (n for n in range(10))
-    >>> for n in iterstep(count, 3):
-    ...     print n
-    0
-    3
-    6
-    9
-    """
-    while 1:
-        yield iterator.next()
-        for _ in range(n-1):
-            iterator.next()
-
-
 def attr_values(cls, attrs, sep=' = ', pre='\t', post='\n'):
     """Return string with names and values of attributes.
 
@@ -328,33 +287,6 @@ def attr_values(cls, attrs, sep=' = ', pre='\t', post='\n'):
     return post.join(values)
 
 
-def permutation_iter(adict):
-    """Generator function which returns permutations of dict values
-
-    Example
-    -------
-    >>> adict = dict(a=(1, 2), b=(3, 4))
-    >>> for d in permutation_iter(adict):
-    ...     print d
-    {'a': 1, 'b': 3}
-    {'a': 2, 'b': 3}
-    {'a': 1, 'b': 4}
-    {'a': 2, 'b': 4}
-
-    The permutation order above is not guaranteed. Also note that if you want
-    the actual dict value to be a sequence, it should be nested:
-
-    >>> adict = dict(a=(1, 2), b=((3, 4),))
-    >>> for d in permutation_iter(adict):
-    ...     print d
-    {'a': 1, 'b': (3, 4)}
-    {'a': 2, 'b': (3, 4)}
-    """
-    permutations, names, varied = multiloop.combine(adict)
-    for vals in permutations:
-        yield dict(zip(names, vals))
-
-
 def slice_from_string(s):
     """Return a python slice object for a string that "looks" like a slice.
 
@@ -380,44 +312,6 @@ def slice_from_string(s):
     if len(slice_args) == 1:
         slice_args.append(slice_args[0]+1)
     return slice(*slice_args)
-
-
-def arg_nearest(arr, value, atol=None, rtol=None):
-    """Return index of array with value nearest the specified value.
-
-    Parameters
-    ----------
-    arr : numpy array
-    value : float
-        value to search for in `arr`
-    atol, rtol : float
-        If specified, assert that value in `arr` atleast as close to `value` as
-        given tolerance. `atol` and `rtol`
-
-    Example
-    -------
-    >>> a = np.array([1, 2, 3, 4, 5])
-    >>> arg_nearest(a, 3.1)
-    2
-    >>> arg_nearest(a, 3.1, atol=0.1)
-    Traceback (most recent call last):
-        ...
-    ValueError: desired: 3.1, closest: 3
-    >>> arg_nearest(a, 3.1, rtol=0.1)
-    2
-    """
-    warnings.warn("Use numpy.searchsorted", DeprecationWarning)
-    abs_diff = np.abs(np.asarray(arr) - value)
-    idx = abs_diff.argmin()
-    if atol is not None:
-        if abs_diff[idx] > atol:
-            print 'difference:', abs_diff[idx]
-            raise ValueError('desired: %s, closest: %s' % (value, arr[idx]))
-    if rtol is not None:
-        if np.abs(abs_diff[idx] / value) > rtol:
-            print 'difference:', np.abs(abs_diff[idx] / value)
-            raise ValueError('desired: %s, closest: %s' % (value, arr[idx]))
-    return idx
 
 
 class CenteredWindow(object):
@@ -570,6 +464,7 @@ def attributes_from_dict(d):
     for n, v in d.iteritems():
         setattr(self, n, v)
 
+
 class PickDict(dict):
     """Dict that allows you pick multiple values at once.
 
@@ -609,109 +504,6 @@ class PickAttrs(object):
 
 class PickBunch(PickAttrs, Bunch):
     """Class allowing attr initialization ala Bunch and picking ala PickAttrs"""
-
-
-class OrderedDict(dict, DictMixin):
-    """Ordered dict where keys remain in order they were added.
-
-    [1] http://code.activestate.com/recipes/576693/
-    """
-
-    def __init__(self, *args, **kwds):
-        if len(args) > 1:
-            raise TypeError('expected at most 1 arguments, got %d' % len(args))
-        try:
-            self.__end
-        except AttributeError:
-            self.clear()
-        self.update(*args, **kwds)
-
-    def clear(self):
-        self.__end = end = []
-        end += [None, end, end]         # sentinel node for doubly linked list
-        self.__map = {}                 # key --> [key, prev, next]
-        dict.clear(self)
-
-    def __setitem__(self, key, value):
-        if key not in self:
-            end = self.__end
-            curr = end[1]
-            curr[2] = end[1] = self.__map[key] = [key, curr, end]
-        dict.__setitem__(self, key, value)
-
-    def __delitem__(self, key):
-        dict.__delitem__(self, key)
-        key, prev, next = self.__map.pop(key)
-        prev[2] = next
-        next[1] = prev
-
-    def __iter__(self):
-        end = self.__end
-        curr = end[2]
-        while curr is not end:
-            yield curr[0]
-            curr = curr[2]
-
-    def __reversed__(self):
-        end = self.__end
-        curr = end[1]
-        while curr is not end:
-            yield curr[0]
-            curr = curr[1]
-
-    def popitem(self, last=True):
-        if not self:
-            raise KeyError('dictionary is empty')
-        key = reversed(self).next() if last else iter(self).next()
-        value = self.pop(key)
-        return key, value
-
-    def __reduce__(self):
-        items = [[k, self[k]] for k in self]
-        tmp = self.__map, self.__end
-        del self.__map, self.__end
-        inst_dict = vars(self).copy()
-        self.__map, self.__end = tmp
-        if inst_dict:
-            return (self.__class__, (items,), inst_dict)
-        return self.__class__, (items,)
-
-    def keys(self):
-        return list(self)
-
-    setdefault = DictMixin.setdefault
-    update = DictMixin.update
-    pop = DictMixin.pop
-    values = DictMixin.values
-    items = DictMixin.items
-    iterkeys = DictMixin.iterkeys
-    itervalues = DictMixin.itervalues
-    iteritems = DictMixin.iteritems
-
-    def __repr__(self):
-        if not self:
-            return '%s()' % (self.__class__.__name__,)
-        return '%s(%r)' % (self.__class__.__name__, self.items())
-
-    def copy(self):
-        return self.__class__(self)
-
-    @classmethod
-    def fromkeys(cls, iterable, value=None):
-        d = cls()
-        for key in iterable:
-            d[key] = value
-        return d
-
-    def __eq__(self, other):
-        if isinstance(other, OrderedDict):
-            return len(self)==len(other) and \
-                   all(p==q for p, q in  zip(self.items(), other.items()))
-        return dict.__eq__(self, other)
-
-    def __ne__(self, other):
-        return not self == other
-
 
 
 if __name__ == '__main__':
