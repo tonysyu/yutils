@@ -1,4 +1,4 @@
 yutils
 ======
 
-Utility functions by Tony S. Yu
+Random collection of utility functions that I've found useful.

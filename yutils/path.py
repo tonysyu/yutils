@@ -3,7 +3,6 @@ Path related helper functions.
 """
 import os
 import sys
-import glob
 import shutil
 import warnings
 
@@ -14,22 +13,8 @@ def hasext(filename):
     return len(ext) > 0
 
 
-def match_glob(pattern, path='.'):
-    """Yield all files matching given glob pattern
-
-    Parameters
-    ----------
-    pattern : str
-        glob pattern to match (e.g. '*.py' will match 'foo.py' and 'bar.py')
-    path : str
-        path to desired files.
-    """
-    for match in glob.glob(os.path.join(path, pattern)):
-        yield match
-
-
-def add_unique_postfix(path):
-    """Add unique postfix to file or directory path
+def add_unique_suffix(path):
+    """Add unique suffix to file or directory path
 
     Parameters
     ----------
@@ -54,7 +39,7 @@ def add_unique_postfix(path):
         if not os.path.exists(new_path):
             return new_path
     else:
-        msg = "Attempts to add unique postfix failed after %i iterations"
+        msg = "Attempts to add unique suffix failed after %i iterations"
         raise OSError(msg % sys.maxint)
 
 
@@ -120,7 +105,7 @@ def mkdir(path, conflict='rename', rename_fmt='%s_%i', mode=0777):
             shutil.rmtree(path)
         elif conflict == 'rename':
             print "Directory exists: %s" % path
-            path = add_unique_postfix(path)
+            path = add_unique_suffix(path)
             print "Create new directory: %s" % path
         else:
             raise ValueError("Unrecognized value for conflict: %s" % conflict)
@@ -167,11 +152,11 @@ def test_join_to_filepath():
 
 def test_add_unique_postix():
     script_path = __file__
-    unique_path = add_unique_postfix(script_path)
+    unique_path = add_unique_suffix(script_path)
     path, ext = os.path.splitext(__file__)
     assert unique_path == (path + '(1)' + ext)
+
 
 if __name__ == '__main__':
     import nose
     nose.runmodule()
-
