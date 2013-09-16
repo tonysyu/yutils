@@ -23,6 +23,7 @@ def _norm_max(x):
 def _norm_sum(x):
     return x.astype(float) / sum(x)
 
+
 NORM_TYPES = dict(max=_norm_max, sum=_norm_sum)
 
 
@@ -51,13 +52,16 @@ def histstrip(x, positions=None, widths=None, width_frac=0.5, median=True,
         ax = plt.gca()
     if positions is None:
         positions = np.arange(len(x)) + 1
+
     if widths is None:
         if ax.xaxis.get_scale() == 'log':
             widths = np.min(np.diff(np.log10(positions))) * width_frac
         else:
             widths = np.min(np.diff(positions)) * width_frac
+
     if np.isscalar(widths):
         widths = np.ones(len(positions), float) * widths
+
     hist_kw = dict()
     hist_kw.update(hist_kwargs)
     pcolor_kw = dict(vmin=0, vmax=1, edgecolor='k')
@@ -75,6 +79,7 @@ def histstrip(x, positions=None, widths=None, width_frac=0.5, median=True,
             x_med = _x_extents(x_pos, w, ax)
             y_med = np.median(data) * np.ones(2)
             ax.plot(x_med, y_med, **median_kw)
+
     ax.set_xticks(positions)
 
 
