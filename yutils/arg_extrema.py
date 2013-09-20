@@ -2,6 +2,8 @@ import itertools
 
 import numpy as np
 
+from core import CenteredWindow
+
 
 __all__ = ['arg_extrema']
 
@@ -26,7 +28,7 @@ def arg_extrema(y, min_dist=1, min_diff=0):
     x_min, x_max = arg_extrema_curvature(y)
 
     # Filter out values that are not extrema in the surrounding window
-    window = CenteredWindow(width=min_dist, length=len(y))
+    window = CenteredWindow(window_shape=min_dist, array_shape=len(y))
     x_min = np.array([x0 for x0 in x_min if y[x0] == np.min(y[window.at(x0)])])
     x_max = np.array([x0 for x0 in x_max if y[x0] == np.max(y[window.at(x0)])])
 
@@ -43,39 +45,6 @@ def arg_extrema_curvature(y):
     x_max = np.nonzero(np.hstack([False, curvature < 0]))
     # `nonzero` returns tuple of indices, even for 1D arrays.
     return x_min[0], x_max[0]
-
-
-class CenteredWindow(object):
-    """Window that create slices numpy arrays over 1D windows.
-
-    Parameters
-    ----------
-    width : int
-        Distance between center and each edge of the window. This is
-        effectively the half-width of the window.
-    length : int
-        Maximum length of the array.
-
-    Example
-    -------
-    >>> a = np.arange(16)
-    >>> w = CenteredWindow(1, a.size)
-    >>> a[w.at(1)]
-    array([0, 1, 2])
-    >>> a[w.at(0)]
-    array([0, 1])
-    >>> a[w.at(15)]
-    array([14, 15])
-    """
-    def __init__(self, width, length):
-        self.width = width
-        self.length = length
-
-    def at(self, i):
-        w = self.width
-        xmin = max(0, i - w)
-        xmax = min(self.length, i + w + 1)
-        return slice(xmin, xmax)
 
 
 def interleave(x, y):
@@ -101,6 +70,9 @@ def filter_min_diff(x_min, x_max, y, min_diff):
     min_diff : float
         Minimum y-difference between a minimum and its adjacent maxima.
     """
+    if len(x_min) == 0 or len(x_max) == 0:
+        return x_min, x_max
+
     if x_min[0] < x_max[0]:
         x = interleave(x_min, x_max).tolist()
     else:
@@ -120,17 +92,46 @@ def filter_min_diff(x_min, x_max, y, min_diff):
 
 def filter_adjacent_extrema(x_min, x_max, y):
     """Remove values from `x_min` & `x_max` so max & min values alternate."""
-    # Split x_max based on locations of x_min (adjacent x_max get grouped)
-    i_split = np.nonzero(np.diff(np.searchsorted(x_min, x_max)) > 0)[0] + 1
     # Given contiguous x_max, choose the one with the max y-value.
-    x_max = np.hstack([x[np.argmax(y[x])] for x in np.split(x_max, i_split)
-                       if len(x) > 0])
-    # Split x_min based on locations of x_max (adjacent x_min get grouped)
-    i_split = np.nonzero(np.diff(np.searchsorted(x_max, x_min)) > 0)[0] + 1
+    x_max = _hstack([x[np.argmax(y[x])]
+                     for x in _iter_contiguous(x_max, x_min)])
     # Given contiguous x_min, choose the one with the min y-value.
-    x_min = np.hstack([x[np.argmin(y[x])] for x in np.split(x_min, i_split)
-                       if len(x) > 0])
+    x_min = _hstack([x[np.argmin(y[x])]
+                     for x in _iter_contiguous(x_min, x_max)])
     return x_min, x_max
+
+
+def _iter_contiguous(x, x_other):
+    """ Yield contiguous values of `x` that are split by `x_other`.
+
+    This is used to group and reduce adjacent maxima, since each maximum should
+    be bounded by minima.
+
+    Examples
+    --------
+    >>> x = np.arange(10)
+    >>> x_other = [2.5, 5.2, 5.8]
+    >>> for x_section in _iter_contiguous(x, x_other):
+    ...     print list(x_section)
+    [0, 1, 2]
+    [3, 4, 5]
+    [6, 7, 8, 9]
+    """
+    index_jumps = np.diff(np.searchsorted(x_other, x)) > 0
+    i_split = np.nonzero(index_jumps)[0] + 1
+    for x_section in np.split(x, i_split):
+        if len(x_section) > 0:
+            yield x_section
+
+
+def _hstack(arrays):
+    """ Return array stacked horizontally based on a list of arrays.
+
+    Unlike `np.hstack`, return an empty list when given an empty list.
+    """
+    if len(arrays) == 0:
+        return arrays
+    return np.hstack(arrays)
 
 
 def demo_peak_detection():
@@ -158,3 +159,6 @@ def demo_peak_detection():
 
 if __name__ == "__main__":
     demo_peak_detection()
+
+    import doctest
+    doctest.testmod()
