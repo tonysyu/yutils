@@ -6,6 +6,7 @@ import time
 import pstats
 import cProfile
 import tempfile
+import functools
 import contextlib
 
 
@@ -119,6 +120,17 @@ def qt4_pdb(ipython=True):
   else:
       from pdb import set_trace
       return set_trace
+
+
+def print_name_on_call(func):
+    @functools.wraps
+    def wrapped(*args, **kwargs):
+        print '{}: enter'.format(func.func_name)
+        out = func(*args, **kwargs)
+        print '{}: exit'.format(func.func_name)
+        return out
+    return wrapped
+
 
 if __name__ == '__main__':
     import doctest
