@@ -1,1 +1,1 @@
-from titlecase import titlecase
+from ._titlecase import titlecase

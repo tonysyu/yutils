@@ -64,7 +64,7 @@ class CascadingConfig(dict):
         arguments to a function. For example::
 
             >>> def print_value(key, **kwargs):
-            ...     print kwargs.get(key, 0)
+            ...     print(kwargs.get(key, 0))
             >>> print_value('a')
             0
             >>> print_value('a', a=1)
@@ -74,7 +74,7 @@ class CascadingConfig(dict):
 
             >>> config = CascadingConfig(a=0)
             >>> def print_value(key, **kwargs):
-            ...     print kwargs.get(key, config.get(key))
+            ...     print(kwargs.get(key, config.get(key)))
             >>> print_value('a')
             0
             >>> print_value('a', a=1)

@@ -1,2 +1,2 @@
-from core import *
-from class_tree import print_ctree
+from .core import *
+from .class_tree import print_ctree

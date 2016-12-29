@@ -1,6 +1,6 @@
 import numpy as np
 
-from base import BaseTool
+from .base import BaseTool
 
 
 __all__ = ['MeasureLengthTool']
@@ -67,7 +67,7 @@ class MeasureLengthTool(BaseTool):
         y1 = event.ydata
         self.length = np.sqrt((x1 - self.x0)**2 + (y1 - self.y0)**2)
         if self.message is not None:
-            print self.message.format(self.length)
+            print(self.message.format(self.length))
 
     def onmove(self, event):
         if self.pressevent is None or event.inaxes!=self.pressevent.inaxes:

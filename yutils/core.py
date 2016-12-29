@@ -1,8 +1,14 @@
 import re
 import warnings
-import progressbar
 import functools
 from functools import wraps
+try:
+    from progressbar import ProgressBar as ProgressBarBase
+except ImportError:
+    class ProgressBarBase:
+        def __init__(*args, **kwargs):
+            msg = "ProgressBar requires `pip install progressbar`"
+            raise NotImplementedError(msg)
 
 import numpy as np
 
@@ -81,10 +87,12 @@ class deprecated(object):
         @functools.wraps(func)
         def wrapped(*args, **kwargs):
             if self.behavior == 'warn':
-                warnings.warn_explicit(msg,
+                warnings.warn_explicit(
+                    msg,
                     category=DeprecationWarning,
                     filename=func.func_code.co_filename,
-                    lineno=func.func_code.co_firstlineno + 1)
+                    lineno=func.func_code.co_firstlineno + 1
+                )
             elif self.behavior == 'raise':
                 raise DeprecationWarning(msg)
             return func(*args, **kwargs)
@@ -127,7 +135,7 @@ class inherit_doc(object):
 
         overridden = getattr(super(cls, obj), self.name, None)
 
-        @wraps(self.mthd, assigned=('__name__','__module__'))
+        @wraps(self.mthd, assigned=('__name__', '__module__'))
         def f(*args, **kwargs):
             return self.mthd(obj, *args, **kwargs)
 
@@ -137,9 +145,10 @@ class inherit_doc(object):
 
         for parent in cls.__mro__[1:]:
             overridden = getattr(parent, self.name, None)
-            if overridden: break
+            if overridden:
+                break
 
-        @wraps(self.mthd, assigned=('__name__','__module__'))
+        @wraps(self.mthd, assigned=('__name__', '__module__'))
         def f(*args, **kwargs):
             return self.mthd(*args, **kwargs)
 
@@ -147,12 +156,12 @@ class inherit_doc(object):
 
     def use_parent_doc(self, func, source):
         if source is None:
-            raise NameError, ("Can't find '%s' in parents" % self.name)
+            raise NameError("Can't find '%s' in parents" % self.name)
         func.__doc__ = source.__doc__
         return func
 
 
-class ProgressBar(progressbar.ProgressBar):
+class ProgressBar(ProgressBarBase):
     """ProgressBar class with default widgets and improved update method.
 
     This implementation simplifies usage when the total number of iterations
@@ -279,7 +288,7 @@ def attr_values(cls, attrs, sep=' = ', pre='\t', post='\n'):
     >>> class Dummy:
     ...     a = 1
     ...     b = 2
-    >>> print attr_values(Dummy, ('a', 'b'), pre='')
+    >>> print(attr_values(Dummy, ('a', 'b'), pre=''))
     a = 1
     b = 2
     """
@@ -461,7 +470,7 @@ def attributes_from_dict(d):
     'world'
     """
     self = d.pop('self')
-    for n, v in d.iteritems():
+    for n, v in d.items():
         setattr(self, n, v)
 
 
@@ -502,8 +511,9 @@ class PickAttrs(object):
         """Return list of values of all given attribute names."""
         return [getattr(self, k) for k in args]
 
+
 class PickBunch(PickAttrs, Bunch):
-    """Class allowing attr initialization ala Bunch and picking ala PickAttrs"""
+    """Class allowing initialization ala Bunch and picking ala PickAttrs"""
 
 
 if __name__ == '__main__':

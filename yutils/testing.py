@@ -23,7 +23,7 @@ def stopwatch(times=None):
         end = time.clock()
     elapsed = end - start
     if times is None:
-        print 'elapsed time: %f sec' % elapsed
+        print('elapsed time: %f sec' % elapsed)
     else:
         times.append(elapsed)
 
@@ -92,7 +92,7 @@ class temporary_file(object):
     -------
     >>> with temporary_file('hello world') as fname:
     ...     f = open(fname)
-    ...     print f.read()
+    ...     print(f.read())
     hello world
 
     """
@@ -125,9 +125,9 @@ def qt4_pdb(ipython=True):
 def print_name_on_call(func):
     @functools.wraps
     def wrapped(*args, **kwargs):
-        print '{}: enter'.format(func.func_name)
+        print('{}: enter'.format(func.func_name))
         out = func(*args, **kwargs)
-        print '{}: exit'.format(func.func_name)
+        print('{}: exit'.format(func.func_name))
         return out
     return wrapped
 

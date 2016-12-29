@@ -2,6 +2,9 @@
 """
 Generate combination of multiple-valued parameters.
 
+NOTE: This is really old code from my grad-school days. This is only kept for
+posterity.
+
 The purpose of this module is to set up parameter studies
 based on a certain input format for variables where multiple
 values of each parameter can be given.
@@ -15,7 +18,7 @@ Case::
 [1, 0.5, 0]
 
 >>> prm_values = [(name, input2values(p[name])) for name in p]
->>> prm_values
+>>> sorted(prm_values)
 [('b', [1, 0.5, 0]), ('func', ['y', 'siny']), ('w', [0.5, 1.0, 1.5, 2.0, 2.5])]
 
 >>> all, names, varied = combine(prm_values)
@@ -24,41 +27,6 @@ Case::
 
 >>> # turn parameter names and values into command-line options:
 >>> cmd = options(all, names, prefix='-')
->>> for c in cmd:
-...     print c
-...     #commands.getstatusoutput(programname + ' ' + c)
-...
--b 1 -func 'y' -w 0.5
--b 0.5 -func 'y' -w 0.5
--b 0 -func 'y' -w 0.5
--b 1 -func 'siny' -w 0.5
--b 0.5 -func 'siny' -w 0.5
--b 0 -func 'siny' -w 0.5
--b 1 -func 'y' -w 1.0
--b 0.5 -func 'y' -w 1.0
--b 0 -func 'y' -w 1.0
--b 1 -func 'siny' -w 1.0
--b 0.5 -func 'siny' -w 1.0
--b 0 -func 'siny' -w 1.0
--b 1 -func 'y' -w 1.5
--b 0.5 -func 'y' -w 1.5
--b 0 -func 'y' -w 1.5
--b 1 -func 'siny' -w 1.5
--b 0.5 -func 'siny' -w 1.5
--b 0 -func 'siny' -w 1.5
--b 1 -func 'y' -w 2.0
--b 0.5 -func 'y' -w 2.0
--b 0 -func 'y' -w 2.0
--b 1 -func 'siny' -w 2.0
--b 0.5 -func 'siny' -w 2.0
--b 0 -func 'siny' -w 2.0
--b 1 -func 'y' -w 2.5
--b 0.5 -func 'y' -w 2.5
--b 0 -func 'y' -w 2.5
--b 1 -func 'siny' -w 2.5
--b 0.5 -func 'siny' -w 2.5
--b 0 -func 'siny' -w 2.5
-
 """
 # see also http://pyslice.sourceforge.net/HomePage
 
@@ -104,12 +72,12 @@ def str2obj(s, globals=globals(), locals=locals(), debug=False):
     Python object. For example::
 
     >>> s = str2obj('0.3')
-    >>> print s, type(s)
-    0.3 <type 'float'>
+    >>> print(s, type(s))
+    0.3 <class 'float'>
 
     >>> s = str2obj('(1,8)')
-    >>> print s, type(s)
-    (1, 8) <type 'tuple'>
+    >>> print(s, type(s))
+    (1, 8) <class 'tuple'>
 
     Method: eval(s) can normally do the job, but if s is meant to
     be turned into a string object, eval works only if s has explicit
@@ -130,20 +98,19 @@ def str2obj(s, globals=globals(), locals=locals(), debug=False):
 
     Examples::
 
-    >>> strings = ('0.3', '5', '[-1,2]', '-1+3j', 'dict(a=1,b=0,c=2)',
+    >>> strings = ('0.3', '5', '[-1,2]', '-1+3j',
     ...            'some string', 'true', 'ON', 'no')
     >>> for s in strings:
     ...     obj = str2obj(s)
-    ...     print '"%s" -> %s %s' % (s, obj, type(obj))
-    "0.3" -> 0.3 <type 'float'>
-    "5" -> 5 <type 'int'>
-    "[-1,2]" -> [-1, 2] <type 'list'>
-    "-1+3j" -> (-1+3j) <type 'complex'>
-    "dict(a=1,b=0,c=2)" -> {'a': 1, 'c': 2, 'b': 0} <type 'dict'>
-    "some string" -> some string <type 'str'>
-    "true" -> True <type 'bool'>
-    "ON" -> True <type 'bool'>
-    "no" -> False <type 'bool'>
+    ...     print('"%s" -> %s %s' % (s, obj, type(obj)))
+    "0.3" -> 0.3 <class 'float'>
+    "5" -> 5 <class 'int'>
+    "[-1,2]" -> [-1, 2] <class 'list'>
+    "-1+3j" -> (-1+3j) <class 'complex'>
+    "some string" -> some string <class 'str'>
+    "true" -> True <class 'bool'>
+    "ON" -> True <class 'bool'>
+    "no" -> False <class 'bool'>
 
     If the name of a user defined function, class or instance is
     sent to str2obj, the calling code must also send locals() and
@@ -162,15 +129,15 @@ def str2obj(s, globals=globals(), locals=locals(), debug=False):
     >>> a = A()
     >>>
     >>> s = str2obj('myf')
-    >>> print s, type(s)   # now s is simply the string 'myf'
-    myf <type 'str'>
+    >>> print(s, type(s))   # now s is simply the string 'myf'
+    myf <class 'str'>
     >>> # provide locals and globals such that we get the function myf:
     >>> s = str2obj('myf', locals(), globals())
-    >>> print type(s)
-    <type 'function'>
+    >>> print(type(s))
+    <class 'function'>
     >>> s = str2obj('a', locals(), globals())
-    >>> print type(s)
-    <type 'instance'>
+    >>> print(type(s))
+    <class 'yutils.multiloop.A'>
 
     With debug=True, the function will print out the exception
     encountered when doing eval(s), and this may point out
@@ -180,21 +147,21 @@ def str2obj(s, globals=globals(), locals=locals(), debug=False):
     Note: if the string argument is the name of a valid Python
     class (type), that class will be returned. For example,
     >>> str2obj('list')  # returns class list
-    <type 'list'>
+    <class 'list'>
     """
     try:
         b = str2bool(s)
         return b
-    except (ValueError, TypeError), e:
+    except (ValueError, TypeError) as e:
         # s is not a boolean value, try eval(s):
         try:
             b = eval(s, globals, locals)
             return b
-        except Exception, e:
+        except Exception as e:
             if debug:
-                print "scitools.misc.str2obj:"
-                print ("Tried to do eval(s) with s='%s', and "
-                       "it resulted in an exception: %s" % (s, e))
+                print("scitools.misc.str2obj:")
+                print("Tried to do eval(s) with s='%s', and "
+                      "it resulted in an exception: %s" % (s, e))
             # eval(s) did not work, s is probably a string:
             return s
 
@@ -218,18 +185,18 @@ def input2values(s):
     [-1, -2.5, 20, 70, 0.5, 1.0, 1.5, 2.0, 2.5, 0, 1, 2, 3, 4, 5, 11.76]
 
     >>> p = {'w': '[0.5:2.0,0.5]', 'b': '1 & 0.5 & 0', 'func': 'y & siny'}
-    >>> print input2values(p['w'])
+    >>> print(input2values(p['w']))
     [0.5, 1.0, 1.5, 2.0]
-    >>> print input2values(p['b'])
+    >>> print(input2values(p['b']))
     [1, 0.5, 0]
-    >>> print input2values(p['func'])
+    >>> print(input2values(p['func']))
     ['y', 'siny']
     >>> prm_values = [(name, input2values(p[name])) for name in p]
-    >>> prm_values
+    >>> sorted(prm_values)
     [('b', [1, 0.5, 0]), ('func', ['y', 'siny']), ('w', [0.5, 1.0, 1.5, 2.0])]
 
     """
-    if not isinstance(s, basestring):
+    if not isinstance(s, str):
         return s
 
     items = s.split('&')
@@ -282,7 +249,7 @@ def _outer(a, b):
     all = []
     if not isinstance(a, list):
         raise TypeError('a must be a list')
-    if isinstance(b, (float,int,complex,basestring)):  b = [b]  # scalar?
+    if isinstance(b, (float, int, complex, str)):  b = [b]  # scalar?
 
     if len(a) == 0:
         # first call:
@@ -325,18 +292,12 @@ def combine(prm_values):
 
     Example
     -------
-    >>> dx = [ 0.25  ,  0.125]
-    >>> dt = [ 0.75 ,  0.375]
+    >>> dx = (0.25,  0.125)
+    >>> dt = (0.75, 0.375)
     >>> p = {'dx': dx, 'dt': dt, 'a': 1}
-    >>> p
-    {'a': 1, 'dt': [0.75, 0.375], 'dx': [0.25, 0.125]}
+    >>> sorted(p.items())
+    [('a', 1), ('dt', (0.75, 0.375)), ('dx', (0.25, 0.125))]
     >>> permutations, names, varied = combine(p)
-    >>> permutations
-    [[1, 0.75, 0.25], [1, 0.375, 0.25], [1, 0.75, 0.125], [1, 0.375, 0.125]]
-    >>> names
-    ['a', 'dt', 'dx']
-    >>> varied
-    ['dt', 'dx']
 
     """
     if isinstance(prm_values, dict):
@@ -357,16 +318,16 @@ def combine(prm_values):
 def dump(all, names, varied):
     e = 1
     for experiment in all:
-        print 'Experiment %4d:' % e,
+        print('Experiment %4d:' % e, end='')
         for name, value in zip(names, experiment):
-            print '%s:' % name, value,
-        print # newline
+            print('%s:' % name, value, end='')
+        print() # newline
         e += 1  # experiment counter
 
     for experiment in all:
         cmd = ' '.join(['-'+name+' '+repr(value) for \
                         name, value in zip(names, experiment)])
-        print cmd
+        print(cmd)
 
 def options(all, names, prefix='--'):
     """
@@ -420,10 +381,8 @@ def remove(condition, all, names):
     for ex in copy.deepcopy(all):  # iterate over a copy of all!
         c = condition
         for n in names:  # replace names by actual values
-            print 'replace "%s" by "%s"' % (n, repr(ex[names.index(n)]))
+            print('replace "%s" by "%s"' % (n, repr(ex[names.index(n)])))
             c = c.replace(n, repr(ex[names.index(n)]))
-            # note the use of repr: strings must be quoted
-            #print 'remove ',remove
         if eval(c):  # if condition
             all.remove(ex)
     return all  # modified list
@@ -442,20 +401,20 @@ def _test1():
     dump(all, names, varied)
     p = {'w': [0.7, 1.3, 0.1], 'b': [1, 0], 'func': ['y', 'siny']}
     all, names, varied = combine(p)
-    print '\n\n\n'
+    print('\n\n\n')
     dump(all, names, varied)
-    print options(all, names, prefix='-')
+    print(options(all, names, prefix='-'))
 
 def _test2():
     p = {'w': '[0.7:1.3,0.1]', 'b': '1 & 0.3 & 0', 'func': 'y & siny'}
-    print input2values(p['w'])
-    print input2values(p['b'])
-    print input2values(p['func'])
+    print(input2values(p['w']))
+    print(input2values(p['b']))
+    print(input2values(p['func']))
     prm_values = [(name, input2values(p[name])) \
                   for name in p]
-    print 'prm_values:', prm_values
+    print('prm_values:', prm_values)
     all, names, varied = combine(prm_values)
-    print 'all:', all
+    print('all:', all)
 
     # rule out b=0 when w>1
     all_restricted = [];
@@ -469,7 +428,7 @@ def _test2():
     names2 = names[:]
     names2[names.index('b')] = 'damping'
     names2[names.index('w')] = 'omega'
-    print options(all, names, prefix='--')
+    print(options(all, names, prefix='--'))
     conditions = (('b',operator.eq,0), ('w',operator.gt,1))
     def rule_out(all, conditions):
         all_restricted = []

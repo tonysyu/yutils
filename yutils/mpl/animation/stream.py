@@ -5,7 +5,11 @@ from matplotlib import mlab
 from scipy import integrate
 from scipy import interpolate
 
-from mpltools.animation import Animation
+try:
+    from mpltools.animation import Animation
+except ImportError as error:
+    msg = "`yutils.mpl.animation.stream` not available: `mpltools` not found"
+    raise ImportError(msg)
 
 try:
     import sympy

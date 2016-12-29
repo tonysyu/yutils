@@ -55,7 +55,7 @@ def print_ctree(obj, junction_prepend='  * ', abbreviate=True,
 
     if _is_junction:
         _prepend = _prepend + junction_prepend
-    print '%s%s' % (_prepend, to_str(obj))
+    print('%s%s' % (_prepend, to_str(obj)))
 
     _prepend = ' ' * len(_prepend)
     _is_junction = False
@@ -68,7 +68,7 @@ def print_ctree(obj, junction_prepend='  * ', abbreviate=True,
         return
     elif bases[0] == object:
         # New-style class has bottomed-out
-        print '%s%s' % (_prepend, to_str(bases[0]))
+        print('%s%s' % (_prepend, to_str(bases[0])))
         return
 
     for b in bases:
@@ -78,9 +78,9 @@ def print_ctree(obj, junction_prepend='  * ', abbreviate=True,
 def demo_print_ctree():
 
     def print_header(ctree_arg):
-        print
-        print 'print_ctree(%s)' % ctree_arg
-        print '~' * 40
+        print()
+        print('print_ctree(%s)' % ctree_arg)
+        print('~' * 40)
 
     print_header('list')
     print_ctree(list)

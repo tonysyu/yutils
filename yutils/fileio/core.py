@@ -38,7 +38,7 @@ def save_ragged_arrays(fname, **kwargs):
         Ragged arrays to be saved.
     """
     save_data = dict()
-    for aprefix, alist in kwargs.iteritems():
+    for aprefix, alist in kwargs.items():
         fmt = '%s_%s' % (aprefix, yutils.pad_zeros(len(alist)))
         for i, array in enumerate(alist):
             save_data[fmt % i] = array
@@ -100,17 +100,17 @@ def read_debug_data(datafile, varnames, postfix=' = ', init=None, noisy=False):
     start_strs = tuple(v + postfix for v in varnames)
     tmpdict = dict()
     if init is not None:
-        exec init in tmpdict
+        exec(init, tmpdict)
     with open(datafile) as f:
         for line in f:
             for vstr, var in zip(start_strs, varnames):
                 if line.startswith(vstr):
-                    exec line in tmpdict
+                    exec(line, tmpdict)
                     datadict[var].append(tmpdict[var])
                     break
             else:
                 if noisy:
-                    print line
+                    print(line)
     return datadict
 
 
@@ -123,7 +123,7 @@ class Logger(object):
         self.log_buffer = []
 
     def log(self, line):
-        print line
+        print(line)
         self.log_buffer.append(line)
 
     def save(self, filename):

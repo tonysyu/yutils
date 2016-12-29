@@ -72,7 +72,7 @@ class Query(object):
             if self.behavior == 'error':
                 raise ValueError(error_msg)
             else:
-                print error_msg
+                print(error_msg)
 
     def validate(self, user_input):
         """Return valid input from user_input. If invalid, raise ValueError"""
@@ -293,6 +293,6 @@ class Quit(Confirm):
 
     def do_quit(self):
         if self.quit_message is not None:
-            print self.quit_message
+            print(self.quit_message)
         sys.exit()
 

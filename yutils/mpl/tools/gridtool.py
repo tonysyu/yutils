@@ -1,4 +1,4 @@
-from base import BaseTool
+from .base import BaseTool
 
 
 __all__ = ['GridTool']

@@ -2,7 +2,7 @@ import itertools
 
 import numpy as np
 
-from core import CenteredWindow
+from .core import CenteredWindow
 
 
 __all__ = ['arg_extrema']
@@ -112,7 +112,7 @@ def _iter_contiguous(x, x_other):
     >>> x = np.arange(10)
     >>> x_other = [2.5, 5.2, 5.8]
     >>> for x_section in _iter_contiguous(x, x_other):
-    ...     print list(x_section)
+    ...     print(list(x_section))
     [0, 1, 2]
     [3, 4, 5]
     [6, 7, 8, 9]

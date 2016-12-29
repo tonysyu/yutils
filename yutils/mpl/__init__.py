@@ -1,5 +1,5 @@
-from tools import *
+from .tools import *
 
-from _coll import *
+from ._coll import *
 
-from layout import shared_subplots
+from .layout import shared_subplots

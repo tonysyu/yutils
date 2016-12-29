@@ -1,7 +1,7 @@
 import warnings
 import matplotlib.patches as mp
 
-from base import BaseTool
+from .base import BaseTool
 
 
 __all__ = ['RectangularSelection']
@@ -94,8 +94,8 @@ class RectangularSelection(BaseTool):
 
         if self.message is not None:
             xmin, xmax, ymin, ymax = self.extents
-            print self.message.format(xmin=xmin, xmax=xmax,
-                                      ymin=ymin, ymax=ymax)
+            print(self.message.format(xmin=xmin, xmax=xmax,
+                                      ymin=ymin, ymax=ymax))
 
     def onmove(self, event):
         if self.pressevent is None or event.inaxes!=self.pressevent.inaxes:

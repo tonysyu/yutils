@@ -44,7 +44,8 @@ def add_unique_suffix(path):
 
 
 _conflict_choices = {'o': 'overwrite', 'r': 'rename', 'i': 'ignore'}
-def mkdir(path, conflict='rename', rename_fmt='%s_%i', mode=0777):
+
+def mkdir(path, conflict='rename', rename_fmt='%s_%i', mode=0o777):
     """Create directory at specified path.
 
     Parameters
@@ -85,11 +86,11 @@ def mkdir(path, conflict='rename', rename_fmt='%s_%i', mode=0777):
     if os.path.exists(path):
 
         if conflict == 'query':
-            print "Directory exists: %s" % path
+            print("Directory exists: %s" % path)
             choice = raw_input("Overwrite, rename, ignore, or quit (o/r/i/q)? ")
             if choice not in _conflict_choices:
                 if not choice == 'q':
-                    print "Unrecognized command '%s'" % choice
+                    print("Unrecognized command '%s'" % choice)
                 sys.exit()
             conflict = _conflict_choices[choice]
 
@@ -101,12 +102,12 @@ def mkdir(path, conflict='rename', rename_fmt='%s_%i', mode=0777):
         elif conflict == 'ignore':
             return path
         elif conflict == 'overwrite':
-            print "Overwriting existing directory: %s" % path
+            print("Overwriting existing directory: %s" % path)
             shutil.rmtree(path)
         elif conflict == 'rename':
-            print "Directory exists: %s" % path
+            print("Directory exists: %s" % path)
             path = add_unique_suffix(path)
-            print "Create new directory: %s" % path
+            print("Create new directory: %s" % path)
         else:
             raise ValueError("Unrecognized value for conflict: %s" % conflict)
 

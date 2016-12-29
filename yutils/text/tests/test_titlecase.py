@@ -4,8 +4,8 @@ import yutils.text as text
 
 
 def string_equal(a, b):
-    print 'a =', a
-    print 'b =', b
+    print('a =', a)
+    print('b =', b)
     assert a == b
 
 def test_titles():
